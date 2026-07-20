@@ -16,11 +16,26 @@ A premium native Linux music application with modern UI, broad audio support, SQ
 
 ## Installation
 
+### Prerequisites
+
+**System Dependencies:**
+```bash
+# Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install python3.13 libmpv2 mpv
+
+# Fedora/RHEL
+sudo dnf install python3.13 mpv-libs
+
+# Arch Linux
+sudo pacman -S python mpv
+```
+
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/aurora-music.git
+git clone https://github.com/sammymullern/aurora-music.git
 cd aurora-music
 
 # Create virtual environment

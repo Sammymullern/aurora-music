@@ -4,7 +4,14 @@ Main entry point for Aurora Music application
 """
 
 import sys
+import locale
 from pathlib import Path
+
+# Set locale to C to prevent numpy/scipy/librosa crashes
+try:
+    locale.setlocale(locale.LC_NUMERIC, 'C')
+except locale.Error:
+    pass
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QSettings, Qt
