@@ -3,18 +3,37 @@ AI-powered recommendation engine using librosa for audio analysis
 """
 
 import logging
-import numpy as np
 from pathlib import Path
 from typing import List, Optional, Dict, Tuple
 from dataclasses import dataclass
 from sqlalchemy.orm import Session
 
-import librosa
-import librosa.feature
+# Lazy imports to prevent locale issues during startup
+# These will be imported only when actually used
+numpy = None
+librosa = None
 
 from app.database.models import Track
 
 logger = logging.getLogger(__name__)
+
+
+def _get_numpy():
+    """Lazy import numpy"""
+    global numpy
+    if numpy is None:
+        import numpy as np
+        numpy = np
+    return numpy
+
+
+def _get_librosa():
+    """Lazy import librosa"""
+    global librosa
+    if librosa is None:
+        import librosa
+        librosa.feature = librosa.feature
+    return librosa
 
 
 @dataclass
@@ -28,10 +47,10 @@ class AudioFeatures:
     spectral_rolloff_std: float
     zero_crossing_rate_mean: float
     zero_crossing_rate_std: float
-    mfcc_mean: np.ndarray  # 20 MFCC coefficients
-    mfcc_std: np.ndarray
-    chroma_mean: np.ndarray  # 12 chroma features
-    chroma_std: np.ndarray
+    mfcc_mean: 'np.ndarray'  # 20 MFCC coefficients
+    mfcc_std: 'np.ndarray'
+    chroma_mean: 'np.ndarray'  # 12 chroma features
+    chroma_std: 'np.ndarray'
     energy: float
     danceability: float
     valence: float  # Emotional content (sad/happy)
@@ -74,6 +93,7 @@ class RecommendationEngine:
                 return None
             
             # Load audio
+            librosa = _get_librosa()
             y, sr = librosa.load(file_path, sr=self._sample_rate, duration=self._duration, offset=30)
             
             # Extract features
@@ -92,8 +112,11 @@ class RecommendationEngine:
             logger.error(f"Error extracting features from {track.file_path}: {e}")
             return None
     
-    def _compute_features(self, track_id: int, y: np.ndarray, sr: int) -> AudioFeatures:
+    def _compute_features(self, track_id: int, y: 'np.ndarray', sr: int) -> AudioFeatures:
         """Compute audio features from audio data"""
+        
+        librosa = _get_librosa()
+        numpy = _get_numpy()
         
         # Tempo (BPM)
         tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
@@ -112,22 +135,22 @@ class RecommendationEngine:
         chroma = librosa.feature.chroma_stft(y=y, sr=sr)
         
         # Energy
-        energy = np.mean(librosa.feature.rms(y=y))
+        energy = numpy.mean(librosa.feature.rms(y=y))
         
         # Compute statistics
         features = AudioFeatures(
             track_id=track_id,
             tempo=float(tempo),
-            spectral_centroid_mean=float(np.mean(spectral_centroids)),
-            spectral_centroid_std=float(np.std(spectral_centroids)),
-            spectral_rolloff_mean=float(np.mean(spectral_rolloff)),
-            spectral_rolloff_std=float(np.std(spectral_rolloff)),
-            zero_crossing_rate_mean=float(np.mean(zcr)),
-            zero_crossing_rate_std=float(np.std(zcr)),
-            mfcc_mean=np.mean(mfccs, axis=1),
-            mfcc_std=np.std(mfccs, axis=1),
-            chroma_mean=np.mean(chroma, axis=1),
-            chroma_std=np.std(chroma, axis=1),
+            spectral_centroid_mean=float(numpy.mean(spectral_centroids)),
+            spectral_centroid_std=float(numpy.std(spectral_centroids)),
+            spectral_rolloff_mean=float(numpy.mean(spectral_rolloff)),
+            spectral_rolloff_std=float(numpy.std(spectral_rolloff)),
+            zero_crossing_rate_mean=float(numpy.mean(zcr)),
+            zero_crossing_rate_std=float(numpy.std(zcr)),
+            mfcc_mean=numpy.mean(mfccs, axis=1),
+            mfcc_std=numpy.std(mfccs, axis=1),
+            chroma_mean=numpy.mean(chroma, axis=1),
+            chroma_std=numpy.std(chroma, axis=1),
             energy=float(energy),
             danceability=self._compute_danceability(tempo, energy, spectral_centroids),
             valence=self._compute_valence(chroma, energy)
@@ -136,7 +159,7 @@ class RecommendationEngine:
         return features
     
     def _compute_danceability(self, tempo: float, energy: float, 
-                              spectral_centroids: np.ndarray) -> float:
+                              spectral_centroids: 'np.ndarray') -> float:
         """Compute danceability score (0-1)"""
         # Simple heuristic based on tempo and energy
         tempo_score = min(1.0, max(0.0, (tempo - 60) / 100))  # 60-160 BPM range
@@ -144,13 +167,15 @@ class RecommendationEngine:
         
         return (tempo_score * 0.6 + energy_score * 0.4)
     
-    def _compute_valence(self, chroma: np.ndarray, energy: float) -> float:
+    def _compute_valence(self, chroma: 'np.ndarray', energy: float) -> float:
         """Compute valence (emotional content) score (0-1)"""
+        numpy = _get_numpy()
+        
         # Major/minor key estimation based on chroma
-        chroma_mean = np.mean(chroma, axis=1)
+        chroma_mean = numpy.mean(chroma, axis=1)
         
         # Simple heuristic: higher chroma variance often indicates more complex/emotional
-        chroma_variance = np.var(chroma_mean)
+        chroma_variance = numpy.var(chroma_mean)
         valence = min(1.0, chroma_variance * 2 + energy * 0.5)
         
         return valence
@@ -200,6 +225,8 @@ class RecommendationEngine:
     
     def _compute_similarity(self, features1: AudioFeatures, features2: AudioFeatures) -> float:
         """Compute similarity between two tracks (0-1)"""
+        numpy = _get_numpy()
+        
         # Weighted combination of feature similarities
         
         # Tempo similarity (within 10 BPM)
@@ -213,13 +240,13 @@ class RecommendationEngine:
         dance_sim = 1.0 - abs(features1.danceability - features2.danceability)
         
         # MFCC similarity (cosine similarity)
-        mfcc_sim = np.dot(features1.mfcc_mean, features2.mfcc_mean) / (
-            np.linalg.norm(features1.mfcc_mean) * np.linalg.norm(features2.mfcc_mean)
+        mfcc_sim = numpy.dot(features1.mfcc_mean, features2.mfcc_mean) / (
+            numpy.linalg.norm(features1.mfcc_mean) * numpy.linalg.norm(features2.mfcc_mean)
         )
         
         # Chroma similarity
-        chroma_sim = np.dot(features1.chroma_mean, features2.chroma_mean) / (
-            np.linalg.norm(features1.chroma_mean) * np.linalg.norm(features2.chroma_mean)
+        chroma_sim = numpy.dot(features1.chroma_mean, features2.chroma_mean) / (
+            numpy.linalg.norm(features1.chroma_mean) * numpy.linalg.norm(features2.chroma_mean)
         )
         
         # Weighted average
@@ -264,9 +291,10 @@ class RecommendationEngine:
         all_tracks = self.session.query(Track).all()
         
         # Compute average features
-        avg_tempo = np.mean([f.tempo for f in seed_features])
-        avg_energy = np.mean([f.energy for f in seed_features])
-        avg_danceability = np.mean([f.danceability for f in seed_features])
+        numpy = _get_numpy()
+        avg_tempo = numpy.mean([f.tempo for f in seed_features])
+        avg_energy = numpy.mean([f.energy for f in seed_features])
+        avg_danceability = numpy.mean([f.danceability for f in seed_features])
         
         # Select tracks that match the average profile
         scored_tracks = []
