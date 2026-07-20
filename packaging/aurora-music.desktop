@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Aurora Music
+GenericName=Music Player
+Comment=Premium native Linux music application
+Exec=aurora
+Icon=aurora-music
+Terminal=false
+Type=Application
+Categories=Audio;AudioVideo;Player;Qt;
+StartupNotify=true
+StartupWMClass=aurora-music
+Keywords=Music;Audio;Player;MP3;FLAC;Library;

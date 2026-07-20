@@ -1,0 +1,73 @@
+{
+    "app-id": "com.auroramusic.AuroraMusic",
+    "runtime": "org.kde.Platform",
+    "runtime-version": "6.6",
+    "sdk": "org.kde.Sdk",
+    "command": "aurora",
+    "finish-args": [
+        "--share=ipc",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--device=dri",
+        "--share=network",
+        "--filesystem=home:ro",
+        "--filesystem=xdg-music:rw",
+        "--talk-name=org.freedesktop.Notifications",
+        "--talk-name=org.mpris.MediaPlayer2.Player",
+        "--own-name=org.mpris.MediaPlayer2.AuroraMusic"
+    ],
+    "modules": [
+        {
+            "name": "python3-pyside6",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} PySide6"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/py3/P/PySide6/PySide6-6.6.0-0-py3-none-any.whl",
+                    "sha256": "placeholder"
+                }
+            ]
+        },
+        {
+            "name": "python3-modules",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --no-build-isolation --prefix=${FLATPAK_DEST} SQLAlchemy python-mpv watchdog mutagen librosa pillow numpy scipy soundfile"
+            ]
+        },
+        {
+            "name": "mpv",
+            "buildsystem": "meson",
+            "config-opts": [
+                "-Dlibmpv=true",
+                "-Dlua=disabled"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/mpv-player/mpv/archive/refs/tags/v0.37.0.tar.gz",
+                    "sha256": "placeholder"
+                }
+            ]
+        },
+        {
+            "name": "aurora-music",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --no-build-isolation --prefix=${FLATPAK_DEST} .",
+                "install -Dm644 packaging/aurora-music.desktop ${FLATPAK_DEST}/share/applications/com.auroramusic.AuroraMusic.desktop",
+                "install -Dm644 assets/images/logo-icon.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/com.auroramusic.AuroraMusic.svg",
+                "install -Dm644 packaging/flatpak/com.auroramusic.AuroraMusic.metainfo.xml ${FLATPAK_DEST}/share/metainfo/com.auroramusic.AuroraMusic.metainfo.xml"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": ".."
+                }
+            ]
+        }
+    ]
+}

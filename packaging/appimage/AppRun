@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+APPDIR="${SCRIPT_DIR}"
+
+# Set up environment
+export PYTHONPATH="${APPDIR}/usr/lib/python3.13/site-packages:${PYTHONPATH}"
+export QT_PLUGIN_PATH="${APPDIR}/usr/plugins"
+export QML2_IMPORT_PATH="${APPDIR}/usr/qml"
+export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
+
+# Run the application
+exec "${APPDIR}/usr/bin/python3" -m app.main "$@"

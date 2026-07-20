@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    configure)
+        # Create desktop entry
+        cat > /usr/share/applications/aurora-music.desktop << EOF
+[Desktop Entry]
+Name=Aurora Music
+Comment=Premium native Linux music application
+Exec=/usr/bin/aurora
+Icon=/usr/share/aurora-music/icons/aurora.png
+Terminal=false
+Type=Application
+Categories=Audio;AudioVideo;Player;
+StartupNotify=true
+EOF
+        
+        # Update desktop database
+        update-desktop-database /usr/share/applications || true
+        
+        # Update icon cache
+        gtk-update-icon-cache -q /usr/share/icons/hicolor || true
+        ;;
+    
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+    
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
