@@ -5,6 +5,7 @@ import QtQuick.Layouts 1.15
 Rectangle {
     id: root
     color: "#1a1a2e"
+    property int playlistCount: 0  // Will be connected to database
     
     ColumnLayout {
         anchors.fill: parent
@@ -40,14 +41,52 @@ Rectangle {
             }
         }
         
+        // Empty state
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: playlistCount === 0
+            color: "transparent"
+            
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 20
+                
+                // Empty state icon
+                Text {
+                    text: "📝"
+                    font.pixelSize: 80
+                    Layout.alignment: Qt.AlignHCenter
+                }
+                
+                // Empty state message
+                Text {
+                    text: "No playlists yet"
+                    font.pixelSize: 24
+                    font.bold: true
+                    color: "#e0e0e0"
+                    Layout.alignment: Qt.AlignHCenter
+                }
+                
+                // Subtitle
+                Text {
+                    text: "Create your first playlist to organize your music"
+                    font.pixelSize: 14
+                    color: "#a0a0a0"
+                    Layout.alignment: Qt.AlignHCenter
+                }
+            }
+        }
+        
         // Playlist grid
         GridView {
             Layout.fillWidth: true
             Layout.fillHeight: true
             cellWidth: 200
             cellHeight: 250
+            visible: playlistCount > 0
             
-            model: 10  // Placeholder
+            model: playlistCount
             
             delegate: PlaylistCard {
                 width: 190
