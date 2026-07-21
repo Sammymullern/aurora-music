@@ -5,6 +5,7 @@ import QtQuick.Layouts 1.15
 Rectangle {
     id: root
     property string title: ""
+    default property alias content: contentLayout.children
     
     implicitWidth: parent.width
     implicitHeight: sectionColumn.height + 20
@@ -26,6 +27,10 @@ Rectangle {
         
         Item { Layout.preferredHeight: 1 }
         
-        data: root.children  // Expose children for content
+        ColumnLayout {
+            id: contentLayout
+            Layout.fillWidth: true
+            spacing: 10
+        }
     }
 }
