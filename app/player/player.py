@@ -48,10 +48,21 @@ class Player(QObject):
                 keep_open="no",
             )
             
-            # Set up event handlers
-            self._mpv.observe("time-pos", self._on_position_changed)
-            self._mpv.observe("duration", self._on_duration_changed)
-            self._mpv.observe("pause", self._on_pause_changed)
+            # Set up event handlers with error handling
+            try:
+                self._mpv.observe("time-pos", self._on_position_changed)
+            except Exception as e:
+                logger.warning(f"Could not observe time-pos: {e}")
+            
+            try:
+                self._mpv.observe("duration", self._on_duration_changed)
+            except Exception as e:
+                logger.warning(f"Could not observe duration: {e}")
+            
+            try:
+                self._mpv.observe("pause", self._on_pause_changed)
+            except Exception as e:
+                logger.warning(f"Could not observe pause: {e}")
             
             self._is_initialized = True
             logger.info("MPV player initialized successfully")
