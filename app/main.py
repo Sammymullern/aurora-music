@@ -36,12 +36,11 @@ def main():
     app.setApplicationVersion("0.1.0")
     app.setOrganizationName("Aurora Music")
     
-    # Set up application settings
-    settings = QSettings()
-    
-    # Create and show main window
+    # Create main window controller
     window = MainWindow()
-    window.show()
+    
+    # Handle application quit
+    app.aboutToQuit.connect(window.cleanup)
     
     # Run application
     sys.exit(app.exec())
