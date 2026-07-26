@@ -61,8 +61,8 @@ pip install -r requirements-dev.txt
 
 When you first launch Aurora Music:
 
-1. **Add Music Library**: Navigate to Settings → Music Library and add your music folders
-2. **Scan Library**: The app will automatically scan and index your audio files
+1. **Add Music Library**: Navigate to Settings → Library → Music Folders and add your music folders
+2. **Scan Library**: Click "Scan Now" to index your audio files, or enable "Watch folders automatically" for automatic monitoring
 3. **Start Playing**: Browse your library and click play on any track
 
 ### Main Features
@@ -133,10 +133,12 @@ Configure audio backend and output device in Settings → Audio:
 
 ### Library Settings
 
-Configure library behavior in Settings → Music Library:
+Configure library behavior in Settings → Library:
+- **Music Folders**: Add, remove, and scan music folders
 - **Watch Folders**: Automatically monitor for changes
-- **Scan Frequency**: How often to check for new files
-- **Import Mode**: Reference (keep files in place) or Managed (copy to library)
+- **Scan Frequency**: Manual, Every 15 min, or Every hour
+- **Actions**: Rescan Library, Clean Missing Songs, Rebuild Database
+- **Statistics**: View songs, albums, artists, and total library size
 
 ## Troubleshooting
 

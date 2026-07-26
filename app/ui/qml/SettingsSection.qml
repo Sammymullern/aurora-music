@@ -8,29 +8,29 @@ Rectangle {
     default property alias content: contentLayout.children
     
     implicitWidth: parent.width
-    implicitHeight: sectionColumn.height + 20
+    implicitHeight: sectionColumn.height + 40
     radius: 12
     color: "#252542"
     
     ColumnLayout {
         id: sectionColumn
         anchors.fill: parent
-        anchors.margins: 20
-        spacing: 15
+        anchors.margins: 30
+        spacing: 25
         
         Text {
             text: root.title
-            font.pixelSize: 18
+            font.pixelSize: 20
             font.bold: true
             color: "#e0e0e0"
         }
         
-        Item { Layout.preferredHeight: 1 }
+        Item { Layout.preferredHeight: 10 }
         
         ColumnLayout {
             id: contentLayout
             Layout.fillWidth: true
-            spacing: 10
+            spacing: 20
         }
     }
 }

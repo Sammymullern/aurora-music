@@ -57,37 +57,42 @@ class MetadataExtractor:
                 "file_name": file_path.name,
                 "file_size": file_path.stat().st_size,
                 "format": file_path.suffix.lstrip(".").lower(),
+                "title": file_path.stem,  # Default to filename
             }
             
-            # Extract basic metadata
-            if audio_file:
-                metadata["title"] = cls._get_tag(audio_file, "title") or file_path.stem
-                metadata["artist"] = cls._get_tag(audio_file, "artist")
-                metadata["album"] = cls._get_tag(audio_file, "album")
-                metadata["albumartist"] = cls._get_tag(audio_file, "albumartist")
-                metadata["track_number"] = cls._parse_track_number(cls._get_tag(audio_file, "tracknumber"))
-                metadata["disc_number"] = cls._parse_disc_number(cls._get_tag(audio_file, "discnumber"))
-                metadata["year"] = cls._parse_year(cls._get_tag(audio_file, "date") or cls._get_tag(audio_file, "year"))
-                metadata["genre"] = cls._get_tag(audio_file, "genre")
-                metadata["comment"] = cls._get_tag(audio_file, "comment")
-                metadata["composer"] = cls._get_tag(audio_file, "composer")
-                metadata["performer"] = cls._get_tag(audio_file, "performer")
-                metadata["lyricist"] = cls._get_tag(audio_file, "lyricist")
-                
-                # Audio properties
-                if hasattr(audio_file, "info"):
-                    info = audio_file.info
-                    metadata["duration"] = getattr(info, "length", None)
-                    metadata["bitrate"] = getattr(info, "bitrate", None)
-                    metadata["sample_rate"] = getattr(info, "sample_rate", None)
-                    metadata["channels"] = getattr(info, "channels", None)
-                    metadata["bit_depth"] = getattr(info, "bits_per_sample", None)
-                
-                # ReplayGain
-                metadata["track_gain"] = cls._parse_replaygain(cls._get_tag(audio_file, "replaygain_track_gain"))
-                metadata["track_peak"] = cls._parse_replaygain_peak(cls._get_tag(audio_file, "replaygain_track_peak"))
-                metadata["album_gain"] = cls._parse_replaygain(cls._get_tag(audio_file, "replaygain_album_gain"))
-                metadata["album_peak"] = cls._parse_replaygain_peak(cls._get_tag(audio_file, "replaygain_album_peak"))
+            # Extract basic metadata with error handling
+            try:
+                if audio_file:
+                    metadata["title"] = cls._get_tag(audio_file, "title") or file_path.stem
+                    metadata["artist"] = cls._get_tag(audio_file, "artist")
+                    metadata["album"] = cls._get_tag(audio_file, "album")
+                    metadata["albumartist"] = cls._get_tag(audio_file, "albumartist")
+                    metadata["track_number"] = cls._parse_track_number(cls._get_tag(audio_file, "tracknumber"))
+                    metadata["disc_number"] = cls._parse_disc_number(cls._get_tag(audio_file, "discnumber"))
+                    metadata["year"] = cls._parse_year(cls._get_tag(audio_file, "date") or cls._get_tag(audio_file, "year"))
+                    metadata["genre"] = cls._get_tag(audio_file, "genre")
+                    metadata["comment"] = cls._get_tag(audio_file, "comment")
+                    metadata["composer"] = cls._get_tag(audio_file, "composer")
+                    metadata["performer"] = cls._get_tag(audio_file, "performer")
+                    metadata["lyricist"] = cls._get_tag(audio_file, "lyricist")
+                    
+                    # Audio properties
+                    if hasattr(audio_file, "info"):
+                        info = audio_file.info
+                        metadata["duration"] = getattr(info, "length", None)
+                        metadata["bitrate"] = getattr(info, "bitrate", None)
+                        metadata["sample_rate"] = getattr(info, "sample_rate", None)
+                        metadata["channels"] = getattr(info, "channels", None)
+                        metadata["bit_depth"] = getattr(info, "bits_per_sample", None)
+                    
+                    # ReplayGain
+                    metadata["track_gain"] = cls._parse_replaygain(cls._get_tag(audio_file, "replaygain_track_gain"))
+                    metadata["track_peak"] = cls._parse_replaygain_peak(cls._get_tag(audio_file, "replaygain_track_peak"))
+                    metadata["album_gain"] = cls._parse_replaygain(cls._get_tag(audio_file, "replaygain_album_gain"))
+                    metadata["album_peak"] = cls._parse_replaygain_peak(cls._get_tag(audio_file, "replaygain_album_peak"))
+            except Exception as e:
+                logger.warning(f"Could not extract full metadata from {file_path.name}, using basic info: {e}")
+                # Keep basic metadata even if tag extraction fails
             
             logger.debug(f"Extracted metadata from {file_path.name}")
             return metadata
@@ -99,11 +104,14 @@ class MetadataExtractor:
     @staticmethod
     def _get_tag(audio_file, tag_name: str) -> Optional[str]:
         """Get tag value from audio file"""
-        if tag_name in audio_file:
-            value = audio_file[tag_name]
-            if isinstance(value, list):
-                return value[0] if value else None
-            return str(value)
+        try:
+            if tag_name in audio_file:
+                value = audio_file[tag_name]
+                if isinstance(value, list):
+                    return value[0] if value else None
+                return str(value)
+        except (KeyError, TypeError, AttributeError) as e:
+            logger.debug(f"Could not get tag '{tag_name}': {e}")
         return None
     
     @staticmethod

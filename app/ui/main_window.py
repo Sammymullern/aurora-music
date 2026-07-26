@@ -10,6 +10,8 @@ from PySide6.QtQml import QQmlApplicationEngine, QQmlContext
 
 from app.player.player import Player
 from app.database.session import db
+from app.settings.settings_manager import SettingsManager
+from app.i18n.translation_manager import TranslationManager
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +24,17 @@ class MainWindow(QObject):
         
         self.player = Player()
         self.db = db
+        self.settings = SettingsManager()
+        self.translation = TranslationManager()
         
         # Initialize database
         self.db.initialize()
+        
+        # Set initial language from settings
+        self.translation.set_language(self.settings.language)
+        
+        # Connect language changes
+        self.settings.languageChanged.connect(self._on_language_changed)
         
         # Setup QML engine
         self._setup_qml()
@@ -36,7 +46,7 @@ class MainWindow(QObject):
         # Create QML application engine
         self.engine = QQmlApplicationEngine()
         
-        # Expose Python objects to QML
+        # Expose Python objects to QML BEFORE loading
         self._expose_objects()
         
         # Load QML file
@@ -56,8 +66,18 @@ class MainWindow(QObject):
         # Expose database
         context.setContextProperty("database", self.db)
         
+        # Expose settings manager
+        context.setContextProperty("settings", self.settings)
+        
+        # Expose translation manager
+        context.setContextProperty("translation", self.translation)
+        
         # Expose main window controller
         context.setContextProperty("mainWindow", self)
+    
+    def _on_language_changed(self) -> None:
+        """Handle language change"""
+        self.translation.set_language(self.settings.language)
     
     def cleanup(self) -> None:
         """Cleanup resources"""
