@@ -59,11 +59,6 @@ ApplicationWindow {
                         id: libraryView
                     }
                     
-                    // Now playing view
-                    NowPlayingView {
-                        id: nowPlayingView
-                    }
-                    
                     // Playlists view
                     PlaylistsView {
                         id: playlistsView
@@ -79,7 +74,7 @@ ApplicationWindow {
                 PlayerControls {
                     id: playerControls
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 80
+                    Layout.preferredHeight: 170
                 }
             }
         }

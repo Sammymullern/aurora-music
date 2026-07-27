@@ -20,12 +20,13 @@ class MusicManager(QObject):
     songsChanged = Signal()
     songCountChanged = Signal()
     
-    def __init__(self):
+    def __init__(self, player=None):
         super().__init__()
         self._songs = []
         self._song_count = 0
         self._current_filter = "all"  # all, favorites, recently_added, high_rating
         self._search_query = ""  # Search query string
+        self._player = player  # Player instance for playback
         self._load_songs()
         # Update missing durations on init
         self.updateMissingDurations()
@@ -35,6 +36,7 @@ class MusicManager(QObject):
         session = db.get_session()
         try:
             query = session.query(Track)
+            logger.info(f"Starting query with filter: {self._current_filter}, search: {self._search_query}")
             
             # Apply search filter if query exists
             if self._search_query and self._search_query.strip():
@@ -43,25 +45,32 @@ class MusicManager(QObject):
                     (Track.title.ilike(search_term)) |
                     (Track.file_name.ilike(search_term))
                 )
+                logger.info(f"Applied search filter: {search_term}")
             
             # Apply filter
             if self._current_filter == "favorites":
                 query = query.filter(Track.favorite == True)
                 query = query.order_by(Track.title)
+                logger.info("Applied favorites filter")
             elif self._current_filter == "recently_added":
                 # Songs added in the last 30 days
                 from datetime import timedelta
                 thirty_days_ago = datetime.utcnow() - timedelta(days=30)
                 query = query.filter(Track.added_at >= thirty_days_ago)
                 query = query.order_by(Track.added_at.desc())
+                logger.info(f"Applied recently_added filter (since {thirty_days_ago})")
             elif self._current_filter == "high_rating":
                 # Most played, max 15
                 query = query.order_by(Track.play_count.desc()).limit(15)
+                logger.info("Applied high_rating filter (top 15)")
             else:
                 # All songs, default order
                 query = query.order_by(Track.title)
+                logger.info("Applied all filter (no restriction)")
             
             tracks = query.all()
+            logger.info(f"Query returned {len(tracks)} tracks")
+            
             self._songs = []
             for track in tracks:
                 self._songs.append({
@@ -102,11 +111,16 @@ class MusicManager(QObject):
     @Slot(str)
     def setFilter(self, filter_name: str):
         """Set the current filter and reload songs"""
+        logger.info(f"setFilter called with: {filter_name}")
         if filter_name in ["all", "favorites", "recently_added", "high_rating"]:
             self._current_filter = filter_name
+            logger.info(f"Filter set to: {self._current_filter}")
             self._load_songs()
+            logger.info(f"Loaded {self._song_count} songs after filter")
             self.songsChanged.emit()
             self.songCountChanged.emit()
+        else:
+            logger.warning(f"Invalid filter name: {filter_name}")
     
     @Slot(str)
     def setSearchQuery(self, query: str):
@@ -142,7 +156,16 @@ class MusicManager(QObject):
                 track.last_played = datetime.utcnow()
                 session.commit()
                 logger.info(f"Playing song: {song_id}, play count: {track.play_count}")
-                # TODO: Connect to player
+                
+                # Use player instance if available
+                if self._player:
+                    title = track.title or track.file_name
+                    artist = track.artist.name if track.artist else "Unknown"
+                    album = track.album.title if track.album else "Unknown"
+                    self._player.load_track(track.file_path, title, artist, album)
+                    self._player.play()
+                    logger.info(f"Loaded track: {track.file_path} - {title}")
+                
                 self._load_songs()
                 self.songsChanged.emit()
         finally:

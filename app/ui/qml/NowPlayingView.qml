@@ -1,11 +1,25 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "./components"
 
 Rectangle {
     id: root
     color: "#1a1a2e"
-    property bool isPlaying: false  // Will be connected to player
+    
+    // Bind to player properties
+    property bool isPlaying: player ? player.isPlaying : false
+    property bool isPaused: player ? player.isPaused : true
+    property real currentPosition: player ? player.currentPosition : 0.0
+    property real currentDuration: player ? player.currentDuration : 0.0
+    property int volume: player ? player.currentVolume : 100
+    property bool shuffle: player ? player.isShuffle : false
+    property string repeat: player ? player.repeatMode : "off"
+    
+    // Track info from player
+    property string currentTrack: player ? player.currentTitle : ""
+    property string currentArtist: player ? player.currentArtist : ""
+    property string currentAlbum: player ? player.currentAlbum : ""
     
     ColumnLayout {
         anchors.fill: parent
@@ -110,7 +124,7 @@ Rectangle {
                 spacing: 10
                 
                 Text {
-                    text: "Track Title"
+                    text: root.currentTrack || "Track Title"
                     font.pixelSize: 32
                     font.bold: true
                     color: "#e0e0e0"
@@ -118,7 +132,7 @@ Rectangle {
                 }
                 
                 Text {
-                    text: "Artist Name • Album Name"
+                    text: (root.currentArtist || "Artist Name") + (root.currentAlbum ? " • " + root.currentAlbum : "")
                     font.pixelSize: 18
                     color: "#a0a0a0"
                     Layout.alignment: Qt.AlignHCenter
@@ -126,6 +140,113 @@ Rectangle {
             }
             
             Item { Layout.fillHeight: true }
+            
+            // Progress bar and time
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                
+                ProgressBar {
+                    Layout.fillWidth: true
+                    value: root.currentDuration > 0 ? root.currentPosition / root.currentDuration : 0
+                    onSeekRequested: function(position) {
+                        if (player) player.seekTo(position)
+                    }
+                }
+                
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+                    
+                    Text {
+                        text: formatTime(root.currentPosition)
+                        font.pixelSize: 12
+                        color: "#a0a0a0"
+                    }
+                    
+                    Item { Layout.fillWidth: true }
+                    
+                    Text {
+                        text: formatTime(root.currentDuration)
+                        font.pixelSize: 12
+                        color: "#a0a0a0"
+                    }
+                }
+            }
+            
+            // Player controls
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                spacing: 16
+                
+                // Shuffle button
+                PlayerButton {
+                    icon: "🔀"
+                    isActive: root.shuffle
+                    onClicked: {
+                        if (player) player.toggleShuffle()
+                    }
+                }
+                
+                // Previous button
+                PlayerButton {
+                    icon: "⏮"
+                    onClicked: {
+                        if (player) player.previous()
+                    }
+                }
+                
+                // Play/Pause button (larger)
+                PlayerButton {
+                    width: 64
+                    height: 64
+                    radius: 32
+                    icon: root.isPaused ? "▶" : "⏸"
+                    onClicked: {
+                        if (player) player.playPause()
+                    }
+                }
+                
+                // Stop button
+                PlayerButton {
+                    icon: "⏹"
+                    onClicked: {
+                        if (player) player.stop()
+                    }
+                }
+                
+                // Next button
+                PlayerButton {
+                    icon: "⏭"
+                    onClicked: {
+                        if (player) player.next()
+                    }
+                }
+                
+                // Repeat button
+                PlayerButton {
+                    icon: root.repeat === "one" ? "🔂" : "🔁"
+                    isActive: root.repeat !== "off"
+                    onClicked: {
+                        if (player) player.toggleRepeat()
+                    }
+                }
+                
+                // Volume slider
+                VolumeSlider {
+                    volume: root.volume
+                    onVolumeValueChanged: function(vol) {
+                        if (player) player.setVolume(vol)
+                    }
+                }
+            }
         }
+    }
+    
+    function formatTime(seconds) {
+        if (!seconds || seconds < 0) return "0:00"
+        var mins = Math.floor(seconds / 60)
+        var secs = Math.floor(seconds % 60)
+        return mins + ":" + (secs < 10 ? "0" : "") + secs
     }
 }

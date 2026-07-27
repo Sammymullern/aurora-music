@@ -59,9 +59,8 @@ Rectangle {
                     model: [
                         { name: "Music", icon: "🎵", view: 0 },
                         { name: "Library", icon: "📚", view: 1 },
-                        { name: "Now Playing", icon: "�", view: 2 },
-                        { name: "Playlists", icon: "📝", view: 3 },
-                        { name: "Settings", icon: "⚙️", view: 4 }
+                        { name: "Playlists", icon: "📝", view: 2 },
+                        { name: "Settings", icon: "⚙️", view: 3 }
                     ]
                     
                     SidebarButton {

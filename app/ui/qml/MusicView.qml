@@ -148,8 +148,11 @@ Rectangle {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            parent.parent.currentFilter = modelData.toLowerCase().replace(" ", "_")
-                            if (musicManager) musicManager.setFilter(modelData.toLowerCase().replace(" ", "_"))
+                            var filterName = modelData.toLowerCase().replace(" ", "_")
+                            parent.parent.currentFilter = filterName
+                            if (musicManager) {
+                                musicManager.setFilter(filterName)
+                            }
                         }
                     }
                     
