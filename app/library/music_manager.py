@@ -47,7 +47,12 @@ class MusicManager(QObject):
             # Apply filter
             if self._current_filter == "favorites":
                 query = query.filter(Track.favorite == True)
+                query = query.order_by(Track.title)
             elif self._current_filter == "recently_added":
+                # Songs added in the last 30 days
+                from datetime import timedelta
+                thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+                query = query.filter(Track.added_at >= thirty_days_ago)
                 query = query.order_by(Track.added_at.desc())
             elif self._current_filter == "high_rating":
                 # Most played, max 15
