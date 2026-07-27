@@ -12,6 +12,7 @@ from app.player.player import Player
 from app.database.session import db
 from app.settings.settings_manager import SettingsManager
 from app.i18n.translation_manager import TranslationManager
+from app.library.music_manager import MusicManager
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,11 @@ class MainWindow(QObject):
         self.settings = SettingsManager()
         self.translation = TranslationManager()
         
-        # Initialize database
+        # Initialize database first
         self.db.initialize()
+        
+        # Now create music manager (requires initialized database)
+        self.music_manager = MusicManager()
         
         # Set initial language from settings
         self.translation.set_language(self.settings.language)
@@ -51,10 +55,14 @@ class MainWindow(QObject):
         
         # Load QML file
         qml_path = Path(__file__).parent / "qml" / "Main.qml"
+        logger.info(f"Loading QML from: {qml_path}")
         self.engine.load(QUrl.fromLocalFile(str(qml_path)))
         
         if not self.engine.rootObjects():
             logger.error("Failed to load QML file")
+            logger.error(f"QML path exists: {qml_path.exists()}")
+        else:
+            logger.info("QML loaded successfully")
     
     def _expose_objects(self) -> None:
         """Expose Python objects to QML context"""
@@ -71,6 +79,9 @@ class MainWindow(QObject):
         
         # Expose translation manager
         context.setContextProperty("translation", self.translation)
+        
+        # Expose music manager
+        context.setContextProperty("musicManager", self.music_manager)
         
         # Expose main window controller
         context.setContextProperty("mainWindow", self)

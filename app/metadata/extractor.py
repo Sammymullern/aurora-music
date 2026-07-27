@@ -47,7 +47,13 @@ class MetadataExtractor:
             return None
         
         try:
+            # Try with easy=True first for tag extraction
             audio_file = File(file_path, easy=True)
+            
+            # If easy mode fails or doesn't have duration, try without easy mode
+            if audio_file is None or (hasattr(audio_file, 'info') and audio_file.info.length is None):
+                audio_file = File(file_path)
+            
             if audio_file is None:
                 logger.error(f"Could not read file: {file_path}")
                 return None

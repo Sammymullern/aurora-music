@@ -49,6 +49,11 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     
+                    // Music view
+                    MusicView {
+                        id: musicView
+                    }
+                    
                     // Library view
                     LibraryView {
                         id: libraryView

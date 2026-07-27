@@ -43,7 +43,9 @@ def main():
     app.aboutToQuit.connect(window.cleanup)
     
     # Run application
-    sys.exit(app.exec())
+    result = app.exec()
+    print(f"Application exited with code: {result}")
+    sys.exit(result)
 
 
 if __name__ == "__main__":
