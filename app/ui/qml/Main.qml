@@ -40,7 +40,7 @@ ApplicationWindow {
                 TopBar {
                     id: topBar
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 60
+                    Layout.preferredHeight: 30
                 }
                 
                 // Content area
@@ -74,7 +74,7 @@ ApplicationWindow {
                 PlayerControls {
                     id: playerControls
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 170
+                    Layout.preferredHeight: 80
                 }
             }
         }

@@ -100,6 +100,11 @@ class VolumeController(QObject):
             logger.error(f"Failed to set system volume: {e}")
             return False
     
+    # CamelCase alias for QML
+    def setVolume(self, volume: int) -> bool:
+        """QML-friendly alias for set_volume"""
+        return self.set_volume(volume)
+    
     def increase_volume(self, step: int = 5) -> bool:
         """Increase volume by step"""
         return self.set_volume(self._current_volume + step)

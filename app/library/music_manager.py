@@ -162,6 +162,20 @@ class MusicManager(QObject):
                     title = track.title or track.file_name
                     artist = track.artist.name if track.artist else "Unknown"
                     album = track.album.title if track.album else "Unknown"
+                    
+                    # Set playlist with currently visible songs (respecting filter/search)
+                    visible_tracks = self._songs
+                    playlist = [t["file_path"] for t in visible_tracks]
+                    self._player.set_playlist(playlist)
+                    
+                    # Find the index of the current track in the playlist
+                    try:
+                        current_index = next(i for i, t in enumerate(visible_tracks) if t["id"] == track.id)
+                        # Set the player's current index
+                        self._player._current_index = current_index
+                    except StopIteration:
+                        logger.warning("Current track not found in visible songs list")
+                    
                     self._player.load_track(track.file_path, title, artist, album)
                     self._player.play()
                     logger.info(f"Loaded track: {track.file_path} - {title}")
