@@ -8,47 +8,58 @@ Rectangle {
     property string icon: ""
     property int viewIndex: 0
     property bool isActive: contentStack.currentIndex === viewIndex
-    
+
     signal clicked()
-    
-    color: isActive ? "#7c3aed" : "transparent"
-    
+
+    color: {
+        if (isActive) return "#221845"
+        if (ma.containsMouse) return "#1d1d3a"
+        return "transparent"
+    }
+    radius: 8
+
+    // Active-state accent bar (left edge)
+    Rectangle {
+        anchors { top: parent.top; bottom: parent.bottom; left: parent.left }
+        width: root.isActive ? 3 : 0
+        radius: 2
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#a78bfa" }
+            GradientStop { position: 1.0; color: "#7c3aed" }
+        }
+        Behavior on width { NumberAnimation { duration: 180 } }
+    }
+
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 20
-        spacing: 15
-        
+        anchors.leftMargin: root.isActive ? 17 : 20
+        anchors.rightMargin: 16
+        spacing: 12
+
         Text {
-            text: icon
-            font.pixelSize: 20
-            Layout.preferredWidth: 30
+            text: root.icon
+            font.pixelSize: 17
+            Layout.preferredWidth: 26
+            opacity: root.isActive ? 1.0 : 0.85
         }
-        
+
         Text {
+            Layout.fillWidth: true
             text: root.text
-            font.pixelSize: 14
-            color: "#e0e0e0"
-            font.bold: root.isActive
+            font.pixelSize: 13
+            font.weight: root.isActive ? Font.DemiBold : Font.Medium
+            color: root.isActive ? "#ffffff" : "#b8b8d8"
+            Behavior on color { ColorAnimation { duration: 150 } }
         }
-        
-        Item { Layout.fillWidth: true }
     }
-    
+
     MouseArea {
+        id: ma
         anchors.fill: parent
-        onClicked: root.clicked()
+        cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
-        
-        onEntered: {
-            if (!root.isActive) {
-                root.color = "#252542"
-            }
-        }
-        
-        onExited: {
-            if (!root.isActive) {
-                root.color = "transparent"
-            }
-        }
+        onClicked: root.clicked()
     }
+
+    Behavior on color { ColorAnimation { duration: 140 } }
 }

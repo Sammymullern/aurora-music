@@ -46,54 +46,56 @@ class VolumeController(QObject):
             logger.error(f"Failed to initialize PulseAudio: {e}")
             self._is_initialized = False
     
+    def _get_default_sink(self):
+        """Return default sink object via the correct pulsectl API, or None."""
+        if not self._is_initialized or not self._pulse:
+            return None
+        try:
+            name = self._pulse.server_info().default_sink_name
+            if not name:
+                return None
+            return self._pulse.get_sink_by_name(name)
+        except Exception as e:
+            logger.debug(f"Error resolving default sink: {e}")
+            return None
+
     def _update_current_volume(self) -> None:
         """Update current volume from PulseAudio"""
-        if not self._is_initialized or not self._pulse:
+        sink = self._get_default_sink()
+        if not sink:
             return
-        
+
         try:
-            # Get default sink
-            sink = self._pulse.get_default_sink()
-            if sink:
-                # Convert pulse volume to 0-100 scale
-                pulse_volume = sink.volume.value_flat
-                self._current_volume = int(pulse_volume * 100)
-                logger.debug(f"Current system volume: {self._current_volume}%")
+            pulse_volume = sink.volume.value_flat
+            self._current_volume = int(pulse_volume * 100)
+            logger.debug(f"Current system volume: {self._current_volume}%")
         except Exception as e:
             logger.debug(f"Error getting current volume: {e}")
-    
+
     def get_volume(self) -> int:
         """Get current system volume (0-100)"""
         if not self._is_initialized:
             return self._current_volume
-        
+
         self._update_current_volume()
         return self._current_volume
-    
-    @Slot(int)
+
+    @Slot(int, result=bool)
     def set_volume(self, volume: int) -> bool:
         """Set system volume (0-100)"""
-        if not self._is_initialized:
-            logger.warning("Volume controller not initialized")
+        sink = self._get_default_sink()
+        if not sink:
+            logger.warning("No default sink found")
             return False
-        
+
         try:
             volume = max(0, min(100, volume))
-            
-            # Get default sink
-            sink = self._pulse.get_default_sink()
-            if not sink:
-                logger.warning("No default sink found")
-                return False
-            
-            # Convert to pulse volume (0.0-1.0)
             pulse_volume = volume / 100.0
-            
-            # Set volume
-            self._pulse.volume_set_all_channels(sink, pulse_volume)
+
+            self._pulse.volume_set_all_chans(sink, pulse_volume)
             self._current_volume = volume
             self.volume_changed.emit(volume)
-            
+
             logger.debug(f"System volume set to {volume}%")
             return True
         except Exception as e:
@@ -101,14 +103,17 @@ class VolumeController(QObject):
             return False
     
     # CamelCase alias for QML
+    @Slot(int, result=bool)
     def setVolume(self, volume: int) -> bool:
         """QML-friendly alias for set_volume"""
         return self.set_volume(volume)
-    
+
+    @Slot(int, result=bool)
     def increase_volume(self, step: int = 5) -> bool:
         """Increase volume by step"""
         return self.set_volume(self._current_volume + step)
-    
+
+    @Slot(int, result=bool)
     def decrease_volume(self, step: int = 5) -> bool:
         """Decrease volume by step"""
         return self.set_volume(self._current_volume - step)

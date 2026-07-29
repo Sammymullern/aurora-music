@@ -4,77 +4,173 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#16162b"
-    
+    color: "#141428"
+
+    Rectangle {
+        anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
+        width: 1
+        gradient: Gradient {
+            GradientStop { position: 0.00; color: "#7c3aed" }
+            GradientStop { position: 0.50; color: "#8b5cf6" }
+            GradientStop { position: 1.00; color: "#10b981" }
+        }
+        opacity: 0.55
+    }
+
     ColumnLayout {
         anchors.fill: parent
+        anchors.topMargin: 4
+        anchors.leftMargin: 0
+        anchors.rightMargin: 0
+        anchors.bottomMargin: 0
         spacing: 0
-        
-        // Logo area
+
+        // ===== Logo / Brand =====
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 70
-            color: "#16162b"
-            
+            Layout.preferredHeight: 78
+            color: "transparent"
+
             RowLayout {
-                anchors.centerIn: parent
-                spacing: 10
-                
-                // Logo placeholder
+                anchors.fill: parent
+                anchors.leftMargin: 22
+                anchors.rightMargin: 18
+                spacing: 12
+
                 Rectangle {
-                    Layout.preferredWidth: 40
-                    Layout.preferredHeight: 40
-                    radius: 8
-                    color: "#7c3aed"
-                    
+                    Layout.preferredWidth: 42
+                    Layout.preferredHeight: 42
+                    radius: 10
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "#8b5cf6" }
+                        GradientStop { position: 1.0; color: "#6d28d9" }
+                    }
                     Text {
                         anchors.centerIn: parent
                         text: "A"
-                        font.pixelSize: 24
+                        font.pixelSize: 22
                         font.bold: true
                         color: "white"
                     }
                 }
-                
-                Text {
-                    text: "Aurora"
-                    font.pixelSize: 22
-                    font.bold: true
-                    color: "#e0e0e0"
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 1
+                    Text {
+                        text: "Aurora"
+                        font.pixelSize: 18
+                        font.bold: true
+                        color: "#ffffff"
+                    }
+                    Text {
+                        text: "MUSIC"
+                        font.pixelSize: 11
+                        color: "#7c3aed"
+                        font.letterSpacing: 3
+                    }
                 }
             }
         }
-        
-        // Navigation items
-        ScrollView {
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.leftMargin: 18
+            Layout.rightMargin: 18
+            Layout.preferredHeight: 1
+            color: "#2a2a4a"
+        }
+
+        // ===== NAVIGATE header =====
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 36
+            Layout.topMargin: 10
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 24
+                text: "NAVIGATE"
+                font.pixelSize: 10
+                font.letterSpacing: 2
+                color: "#5a5a88"
+                font.bold: true
+            }
+        }
+
+        // ===== Nav buttons — placed directly, no wrapping column that collapses =====
+        SidebarButton {
+            Layout.fillWidth: true
+            Layout.leftMargin: 10
+            Layout.rightMargin: 10
+            Layout.preferredHeight: 46
+            text: "Music"
+            icon: "🎵"
+            viewIndex: 0
+            onClicked: contentStack.currentIndex = 0
+        }
+        SidebarButton {
+            Layout.fillWidth: true
+            Layout.leftMargin: 10
+            Layout.rightMargin: 10
+            Layout.preferredHeight: 46
+            Layout.topMargin: 2
+            text: "Library"
+            icon: "💿"
+            viewIndex: 1
+            onClicked: contentStack.currentIndex = 1
+        }
+        SidebarButton {
+            Layout.fillWidth: true
+            Layout.leftMargin: 10
+            Layout.rightMargin: 10
+            Layout.preferredHeight: 46
+            Layout.topMargin: 2
+            text: "Playlists"
+            icon: "🎼"
+            viewIndex: 2
+            onClicked: contentStack.currentIndex = 2
+        }
+
+        // ===== Spacer pushes Settings to bottom =====
+        Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            clip: true
-            
-            ColumnLayout {
-                width: parent.width
-                spacing: 2
-                
-                Repeater {
-                    model: [
-                        { name: "Music", icon: "🎵", view: 0 },
-                        { name: "Library", icon: "📚", view: 1 },
-                        { name: "Playlists", icon: "📝", view: 2 },
-                        { name: "Settings", icon: "⚙️", view: 3 }
-                    ]
-                    
-                    SidebarButton {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 50
-                        text: modelData.name
-                        icon: modelData.icon
-                        viewIndex: modelData.view
-                        onClicked: contentStack.currentIndex = viewIndex
-                    }
-                }
-                
-                Item { Layout.fillHeight: true }
+            Layout.minimumHeight: 10
+        }
+
+        // ===== SYSTEM header =====
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 30
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 24
+                text: "SYSTEM"
+                font.pixelSize: 10
+                font.letterSpacing: 2
+                color: "#5a5a88"
+                font.bold: true
             }
+        }
+
+        SidebarButton {
+            Layout.fillWidth: true
+            Layout.leftMargin: 10
+            Layout.rightMargin: 10
+            Layout.preferredHeight: 46
+            text: "Settings"
+            icon: "⚙️"
+            viewIndex: 3
+            onClicked: contentStack.currentIndex = 3
+        }
+
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 12
         }
     }
 }

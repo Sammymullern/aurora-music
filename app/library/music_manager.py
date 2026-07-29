@@ -19,6 +19,7 @@ class MusicManager(QObject):
     # Signals for QML binding
     songsChanged = Signal()
     songCountChanged = Signal()
+    favoriteToggled = Signal(str, bool)  # (song_id, new_favorite_value)
     
     def __init__(self, player=None):
         super().__init__()
@@ -73,12 +74,25 @@ class MusicManager(QObject):
             
             self._songs = []
             for track in tracks:
+                album_art = (
+                    track.album.artwork_path
+                    if track.album and track.album.artwork_path
+                    else ""
+                )
+                duration_seconds = None
+                if isinstance(track.duration, (int, float)):
+                    duration_seconds = float(track.duration) if track.duration > 0 else None
                 self._songs.append({
                     "id": track.id,
                     "title": track.title or track.file_name,
                     "artist": track.artist.name if track.artist else "Unknown",
                     "album": track.album.title if track.album else "Unknown",
-                    "duration": self._format_duration(track.duration) if track.duration else "0:00",
+                    "album_art": album_art,
+                    # Send RAW numeric seconds to QML. The UI (MusicView + player) is
+                    # responsible for formatting this via formatDuration(). Keeping it as
+                    # a number avoids broken double-conversion when QML calls
+                    # Number("6:54") → NaN → "0:00" (the root cause of all rows showing 0.00).
+                    "duration": duration_seconds if duration_seconds is not None else 0,
                     "file_path": track.file_path,
                     "favorite": track.favorite,
                     "play_count": track.play_count
@@ -130,18 +144,47 @@ class MusicManager(QObject):
         self.songsChanged.emit()
         self.songCountChanged.emit()
     
+    @Slot(str, result=bool)
+    def isFavorite(self, song_id: str) -> bool:
+        """Check favorite status for a song (safe helper for QML list rows)."""
+        try:
+            sid = int(song_id) if song_id not in (None, "") else None
+        except (TypeError, ValueError):
+            sid = None
+        if sid is None:
+            return False
+        session = db.get_session()
+        try:
+            track = session.query(Track).filter(Track.id == sid).first()
+            return bool(track.favorite) if track else False
+        finally:
+            session.close()
+
     @Slot(str)
     def toggleFavorite(self, song_id: str):
-        """Toggle favorite status for a song"""
+        """Toggle favorite status for a song and notify everyone."""
         session = db.get_session()
         try:
             track = session.query(Track).filter(Track.id == int(song_id)).first()
             if track:
                 track.favorite = not track.favorite
+                new_val = bool(track.favorite)
                 session.commit()
+                logger.info(f"Toggled favorite for song {song_id}: {new_val}")
+                # Notify song list (reloads rows)
                 self._load_songs()
                 self.songsChanged.emit()
-                logger.info(f"Toggled favorite for song {song_id}: {track.favorite}")
+                self.songCountChanged.emit()
+                # Notify player bar (so the heart icon there reflects the DB)
+                if self._player:
+                    try:
+                        current_id_str = str(getattr(self._player, "currentTrackId", "") or "")
+                        if current_id_str == str(song_id):
+                            self._player.set_currentTrackFavorite(new_val)
+                    except Exception as pe:
+                        logger.debug(f"Could not sync player favorite state: {pe}")
+                # Emit signal so any QML listener can also react (log-less safe notify)
+                self.favoriteToggled.emit(str(song_id), new_val)
         finally:
             session.close()
     
@@ -156,30 +199,43 @@ class MusicManager(QObject):
                 track.last_played = datetime.utcnow()
                 session.commit()
                 logger.info(f"Playing song: {song_id}, play count: {track.play_count}")
-                
+
                 # Use player instance if available
                 if self._player:
                     title = track.title or track.file_name
                     artist = track.artist.name if track.artist else "Unknown"
                     album = track.album.title if track.album else "Unknown"
-                    
+                    album_art = (
+                        track.album.artwork_path
+                        if track.album and track.album.artwork_path
+                        else ""
+                    )
+
                     # Set playlist with currently visible songs (respecting filter/search)
+                    # Each playlist entry carries its own metadata so Next/Prev work
                     visible_tracks = self._songs
-                    playlist = [t["file_path"] for t in visible_tracks]
-                    self._player.set_playlist(playlist)
-                    
+                    self._player.set_playlist(visible_tracks)
+
                     # Find the index of the current track in the playlist
+                    current_index = -1
                     try:
-                        current_index = next(i for i, t in enumerate(visible_tracks) if t["id"] == track.id)
-                        # Set the player's current index
-                        self._player._current_index = current_index
+                        current_index = next(
+                            i for i, t in enumerate(visible_tracks) if t["id"] == track.id
+                        )
+                        self._player.set_current_index(current_index)
                     except StopIteration:
                         logger.warning("Current track not found in visible songs list")
-                    
-                    self._player.load_track(track.file_path, title, artist, album)
+
+                    # Load through the player with full metadata + id + favorite
+                    self._player.load_track(
+                        track.file_path, title, artist, album, album_art,
+                        track_id=str(track.id),
+                        favorite=bool(track.favorite),
+                        auto_play=False,
+                    )
                     self._player.play()
                     logger.info(f"Loaded track: {track.file_path} - {title}")
-                
+
                 self._load_songs()
                 self.songsChanged.emit()
         finally:
@@ -194,28 +250,72 @@ class MusicManager(QObject):
     
     @Slot()
     def updateMissingDurations(self):
-        """Update duration for tracks that are missing it"""
+        """Update duration + audio properties for tracks that are missing them."""
         from app.metadata.extractor import MetadataExtractor
         from pathlib import Path
         
         session = db.get_session()
         try:
-            # Get tracks without duration
-            tracks = session.query(Track).filter(Track.duration.is_(None)).all()
+            # Missing = None or <= 0 seconds
+            tracks = (
+                session.query(Track)
+                .filter(
+                    (Track.duration.is_(None))
+                    | (Track.duration <= 0)
+                )
+                .all()
+            )
             extractor = MetadataExtractor()
             
             updated_count = 0
+            skipped = 0
             for track in tracks:
                 file_path = Path(track.file_path)
-                if file_path.exists():
+                if not file_path.exists():
+                    skipped += 1
+                    logger.debug(f"Skipping missing file for track id={track.id}: {track.file_path}")
+                    continue
+                try:
                     metadata = extractor.extract(file_path)
-                    if metadata and metadata.get("duration"):
-                        track.duration = metadata["duration"]
-                        updated_count += 1
-            
-            session.commit()
-            logger.info(f"Updated duration for {updated_count} tracks")
+                except Exception as e:
+                    logger.debug(f"Extractor crashed on track id={track.id}: {e}")
+                    continue
+                if not metadata:
+                    continue
+
+                # Pull duration first (fixes 0:00 display)
+                duration = metadata.get("duration")
+                if isinstance(duration, (int, float)) and duration > 0:
+                    track.duration = float(duration)
+                    changed = True
+                else:
+                    changed = False
+
+                # Enrich with optional audio properties if available (future-proof)
+                for field, key, typ in [
+                    ("bitrate",    "bitrate",     int),
+                    ("sample_rate","sample_rate", int),
+                    ("channels",   "channels",    int),
+                    ("bit_depth",  "bit_depth",   int),
+                ]:
+                    val = metadata.get(key)
+                    if isinstance(val, typ) and val > 0:
+                        setattr(track, field, val)
+                        changed = True
+
+                if changed:
+                    updated_count += 1
+
+            if updated_count:
+                session.commit()
+
+            logger.info(
+                f"Duration refresh: checked {len(tracks)} tracks, "
+                f"updated {updated_count}, skipped {skipped} missing files."
+            )
+
             self._load_songs()
             self.songsChanged.emit()
+            self.songCountChanged.emit()
         finally:
             session.close()
