@@ -772,8 +772,21 @@ Rectangle {
                                                 verticalAlignment: Text.AlignVCenter
                                             }
                                             onClicked: {
-                                                addTracksDialog.selectedTracks.push(modelData)
-                                                selectedTracksList.model = addTracksDialog.selectedTracks
+                                                // Check if track already exists in selected tracks
+                                                var alreadyExists = false
+                                                for (var i = 0; i < addTracksDialog.selectedTracks.length; i++) {
+                                                    if (addTracksDialog.selectedTracks[i].id === modelData.id) {
+                                                        alreadyExists = true
+                                                        break
+                                                    }
+                                                }
+                                                
+                                                if (!alreadyExists) {
+                                                    var newSelected = addTracksDialog.selectedTracks.slice()
+                                                    newSelected.push(modelData)
+                                                    addTracksDialog.selectedTracks = newSelected
+                                                    selectedTracksList.model = newSelected
+                                                }
                                             }
                                         }
                                     }
@@ -874,10 +887,20 @@ Rectangle {
                                                 verticalAlignment: Text.AlignVCenter
                                             }
                                             onClicked: {
-                                                var index = addTracksDialog.selectedTracks.indexOf(modelData)
+                                                // Find index by track ID instead of object reference
+                                                var index = -1
+                                                for (var i = 0; i < addTracksDialog.selectedTracks.length; i++) {
+                                                    if (addTracksDialog.selectedTracks[i].id === modelData.id) {
+                                                        index = i
+                                                        break
+                                                    }
+                                                }
+                                                
                                                 if (index >= 0) {
-                                                    addTracksDialog.selectedTracks.splice(index, 1)
-                                                    selectedTracksList.model = addTracksDialog.selectedTracks
+                                                    var newSelected = addTracksDialog.selectedTracks.slice()
+                                                    newSelected.splice(index, 1)
+                                                    addTracksDialog.selectedTracks = newSelected
+                                                    selectedTracksList.model = newSelected
                                                 }
                                             }
                                         }
