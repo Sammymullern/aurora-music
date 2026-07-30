@@ -56,6 +56,7 @@ ApplicationWindow {
                         MusicView { id: musicView }
                         LibraryView { id: libraryView }
                         PlaylistsView { id: playlistsView }
+                        PlaylistDetailView { id: playlistDetailView }
                         SettingsView { id: settingsView }
                     }
 

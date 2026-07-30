@@ -157,4 +157,4 @@ class PlaylistTrack(Base):
     
     added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
-    __table_args__ = (UniqueConstraint("playlist_id", "track_id", "position", name="unique_playlist_track"),)
+    __table_args__ = (UniqueConstraint("playlist_id", "track_id", name="unique_playlist_track"),)

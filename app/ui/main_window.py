@@ -14,6 +14,7 @@ from app.settings.settings_manager import SettingsManager
 from app.i18n.translation_manager import TranslationManager
 from app.library.music_manager import MusicManager
 from app.audio.volume_controller import VolumeController
+from app.ui.playlist_controller import PlaylistController
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,9 @@ class MainWindow(QObject):
         
         # Initialize database first
         self.db.initialize()
+        
+        # Now create playlist controller (requires initialized database)
+        self.playlist_controller = PlaylistController()
         
         # Now create music manager (requires initialized database and player)
         self.music_manager = MusicManager(player=self.player)
@@ -90,6 +94,12 @@ class MainWindow(QObject):
         
         # Expose volume controller
         context.setContextProperty("volumeController", self.volume_controller)
+        
+        # Expose playlist controller
+        context.setContextProperty("playlistController", self.playlist_controller)
+        
+        # Expose playlist model
+        context.setContextProperty("playlistModel", self.playlist_controller.model)
         
         # Expose main window controller
         context.setContextProperty("mainWindow", self)
