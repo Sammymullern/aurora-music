@@ -192,6 +192,14 @@ python -m app.main
 ![Equalizer](https://github.com/sammymullern/aurora-music/raw/main/assets/screenshots/equalizer.png)
 *10-band equalizer with presets*
 
+## Documentation
+
+For detailed documentation on specific parts of the project, see:
+
+- [UI Documentation](docs/UI.md) - User interface design system, components, and interactions
+- [Architecture Documentation](docs/Architecture.md) - System architecture, components, and data flow
+- [Playlist System Documentation](docs/Playlists.md) - Playlist management features and implementation
+
 ## Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
