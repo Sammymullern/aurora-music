@@ -188,12 +188,12 @@ Rectangle {
             Layout.fillHeight: true
             visible: trackCount > 0
             model: libraryGroups
-            spacing: 20
+            spacing: 30
             clip: true
 
             delegate: Rectangle {
                 width: ListView.view.width
-                height: cardColumn.height + 20
+                height: cardColumn.height + 30
                 color: "#252542"
                 radius: 12
 
