@@ -15,12 +15,13 @@ logger = logging.getLogger(__name__)
 
 class MusicManager(QObject):
     """Manages music library queries and operations for QML"""
-    
+
     # Signals for QML binding
     songsChanged = Signal()
     songCountChanged = Signal()
     favoriteToggled = Signal(str, bool)  # (song_id, new_favorite_value)
-    
+    libraryStatsChanged = Signal()
+
     def __init__(self, player=None):
         super().__init__()
         self._songs = []
@@ -28,7 +29,13 @@ class MusicManager(QObject):
         self._current_filter = "all"  # all, favorites, recently_added, high_rating
         self._search_query = ""  # Search query string
         self._player = player  # Player instance for playback
+        self._library_tracks = []
+        self._track_count = 0
+        self._album_count = 0
+        self._artist_count = 0
+        self._total_duration = 0
         self._load_songs()
+        self._load_library_stats()
         # Update missing durations on init
         self.updateMissingDurations()
     
@@ -95,13 +102,75 @@ class MusicManager(QObject):
                     "duration": duration_seconds if duration_seconds is not None else 0,
                     "file_path": track.file_path,
                     "favorite": track.favorite,
-                    "play_count": track.play_count
+                    "play_count": track.play_count,
+                    "bitrate": track.bitrate if track.bitrate else 0,
+                    "lossless": self._is_lossless(track),
+                    "dateAdded": track.added_at.isoformat() if track.added_at else ""
                 })
             self._song_count = len(self._songs)
             logger.info(f"Loaded {self._song_count} songs from database (filter: {self._current_filter})")
         finally:
             session.close()
     
+    @staticmethod
+    def _is_lossless(track: Track) -> bool:
+        """Determine if a track is lossless based on codec or bitrate"""
+        # Lossless formats: FLAC, ALAC, WAV, AIFF, APE, WavPack, DSD
+        lossless_codecs = ['flac', 'alac', 'wav', 'aiff', 'ape', 'wavpack', 'dsd']
+        if track.codec and track.codec.lower() in lossless_codecs:
+            return True
+        # High bitrate threshold (320+ kbps typically indicates high quality)
+        if track.bitrate and track.bitrate >= 320:
+            return True
+        return False
+
+    def _load_library_stats(self):
+        """Load library statistics (tracks, albums, artists, total duration)"""
+        session = db.get_session()
+        try:
+            # Count tracks
+            self._track_count = session.query(Track).count()
+
+            # Count unique albums
+            self._album_count = session.query(Album).count()
+
+            # Count unique artists
+            self._artist_count = session.query(Artist).count()
+
+            # Calculate total duration
+            tracks = session.query(Track).all()
+            self._total_duration = sum(track.duration or 0 for track in tracks)
+
+            # Load all tracks for library view
+            self._library_tracks = []
+            for track in tracks:
+                album_art = (
+                    track.album.artwork_path
+                    if track.album and track.album.artwork_path
+                    else ""
+                )
+                duration_seconds = None
+                if isinstance(track.duration, (int, float)):
+                    duration_seconds = float(track.duration) if track.duration > 0 else None
+                self._library_tracks.append({
+                    "id": track.id,
+                    "title": track.title or track.file_name,
+                    "artist": track.artist.name if track.artist else "Unknown",
+                    "album": track.album.title if track.album else "Unknown",
+                    "album_art": album_art,
+                    "duration": duration_seconds if duration_seconds is not None else 0,
+                    "file_path": track.file_path,
+                    "favorite": track.favorite,
+                    "play_count": track.play_count,
+                    "bitrate": track.bitrate if track.bitrate else 0,
+                    "lossless": self._is_lossless(track),
+                    "dateAdded": track.added_at.isoformat() if track.added_at else ""
+                })
+
+            logger.info(f"Library stats: {self._track_count} tracks, {self._album_count} albums, {self._artist_count} artists")
+        finally:
+            session.close()
+
     @staticmethod
     def _format_duration(seconds: Optional[float]) -> str:
         """Format duration in seconds to MM:SS"""
@@ -114,13 +183,38 @@ class MusicManager(QObject):
     def get_songs(self) -> List[Dict[str, Any]]:
         """Get all songs"""
         return self._songs
-    
+
     def get_song_count(self) -> int:
         """Get total song count"""
         return self._song_count
-    
+
+    def get_library_tracks(self) -> List[Dict[str, Any]]:
+        """Get all library tracks for library view"""
+        return self._library_tracks
+
+    def get_track_count(self) -> int:
+        """Get library track count"""
+        return self._track_count
+
+    def get_album_count(self) -> int:
+        """Get library album count"""
+        return self._album_count
+
+    def get_artist_count(self) -> int:
+        """Get library artist count"""
+        return self._artist_count
+
+    def get_total_duration(self) -> str:
+        """Get total library duration formatted"""
+        return self._format_duration(self._total_duration)
+
     songs = Property('QVariantList', get_songs, notify=songsChanged)
     songCount = Property(int, get_song_count, notify=songCountChanged)
+    libraryTracks = Property('QVariantList', get_library_tracks, notify=libraryStatsChanged)
+    trackCount = Property(int, get_track_count, notify=libraryStatsChanged)
+    albumCount = Property(int, get_album_count, notify=libraryStatsChanged)
+    artistCount = Property(int, get_artist_count, notify=libraryStatsChanged)
+    totalDuration = Property(str, get_total_duration, notify=libraryStatsChanged)
     
     @Slot(str)
     def setFilter(self, filter_name: str):

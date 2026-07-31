@@ -96,6 +96,7 @@ class MainWindow(QObject):
         
         # Expose music manager
         context.setContextProperty("musicManager", self.music_manager)
+        context.setContextProperty("libraryManager", self.music_manager)
         
         # Expose volume controller
         context.setContextProperty("volumeController", self.volume_controller)
