@@ -58,6 +58,7 @@ ApplicationWindow {
                         PlaylistsView { id: playlistsView }
                         PlaylistDetailView { id: playlistDetailView }
                         SettingsView { id: settingsView }
+                        LibrarySongsView { id: librarySongsView }
                     }
 
                     PlayerControls {

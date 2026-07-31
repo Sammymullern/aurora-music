@@ -194,18 +194,9 @@ Rectangle {
             delegate: Rectangle {
                 id: card
                 width: ListView.view.width
-                height: card.expanded ? cardColumn.height + 30 : 100
+                height: 100
                 color: "#252542"
                 radius: 12
-
-                property bool expanded: false
-
-                Behavior on height {
-                    NumberAnimation {
-                        duration: 200
-                        easing.type: Easing.InOutQuad
-                    }
-                }
 
                 // 3D shadow effect
                 Rectangle {
@@ -219,7 +210,6 @@ Rectangle {
                 }
 
                 ColumnLayout {
-                    id: cardColumn
                     anchors.fill: parent
                     anchors.margins: 15
                     spacing: 10
@@ -295,7 +285,7 @@ Rectangle {
                             }
                         }
 
-                        // Expand/collapse button
+                        // Open button
                         Rectangle {
                             Layout.preferredWidth: 35
                             Layout.preferredHeight: 35
@@ -304,7 +294,7 @@ Rectangle {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: card.expanded ? "▼" : "▶"
+                                text: "▶"
                                 font.pixelSize: 14
                                 color: "white"
                             }
@@ -313,82 +303,13 @@ Rectangle {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    card.expanded = !card.expanded
-                                }
-                            }
-                        }
-                    }
-
-                    // Track list (visible when expanded)
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        visible: card.expanded
-                        spacing: 5
-
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 1
-                            color: "#4a4a6a"
-                        }
-
-                        Repeater {
-                            model: modelData.tracks || []
-
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 50
-                                color: "transparent"
-                                radius: 6
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.margins: 10
-                                    spacing: 15
-
-                                    Text {
-                                        text: index + 1
-                                        font.pixelSize: 13
-                                        color: "#a0a0a0"
-                                        Layout.preferredWidth: 30
-                                        horizontalAlignment: Text.AlignHCenter
-                                    }
-
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 2
-
-                                        Text {
-                                            text: modelData.title || "Unknown Track"
-                                            font.pixelSize: 14
-                                            color: "#e0e0e0"
-                                            Layout.fillWidth: true
-                                            elide: Text.ElideRight
-                                        }
-
-                                        Text {
-                                            text: formatDuration(modelData.duration || 0)
-                                            font.pixelSize: 11
-                                            color: "#a0a0a0"
-                                        }
-                                    }
-
-                                    Text {
-                                        text: "▶"
-                                        font.pixelSize: 16
-                                        color: "#7c3aed"
-                                        Layout.preferredWidth: 30
-                                        horizontalAlignment: Text.AlignHCenter
-                                    }
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onDoubleClicked: {
-                                        if (musicManager) {
-                                            musicManager.playSong(modelData.id)
-                                        }
-                                    }
+                                    // Navigate to songs view
+                                    librarySongsView.songs = modelData.tracks || []
+                                    librarySongsView.title = modelData.name
+                                    librarySongsView.subtitle = modelData.type === "artist" ?
+                                        (modelData.album_count + " Albums") :
+                                        modelData.artist
+                                    contentStack.currentIndex = 5  // LibrarySongsView index
                                 }
                             }
                         }
@@ -398,14 +319,14 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    propagateComposedEvents: true
                     onDoubleClicked: {
-                        propagateComposedEvents = false
-                        if (modelData.type === "album" && modelData.tracks && modelData.tracks.length > 0) {
-                            if (musicManager) {
-                                musicManager.playSong(modelData.tracks[0].id)
-                            }
-                        }
+                        // Navigate to songs view
+                        librarySongsView.songs = modelData.tracks || []
+                        librarySongsView.title = modelData.name
+                        librarySongsView.subtitle = modelData.type === "artist" ?
+                            (modelData.album_count + " Albums") :
+                            modelData.artist
+                        contentStack.currentIndex = 5  // LibrarySongsView index
                     }
                 }
             }
