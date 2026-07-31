@@ -194,9 +194,11 @@ Rectangle {
             delegate: Rectangle {
                 id: card
                 width: ListView.view.width
-                height: expanded ? cardColumn.height + 30 : 100
+                height: card.expanded ? cardColumn.height + 30 : 100
                 color: "#252542"
                 radius: 12
+
+                property bool expanded: false
 
                 Behavior on height {
                     NumberAnimation {
@@ -215,8 +217,6 @@ Rectangle {
                         GradientStop { position: 1.0; color: "#1a1030" }
                     }
                 }
-
-                property bool expanded: false
 
                 ColumnLayout {
                     id: cardColumn
@@ -304,7 +304,7 @@ Rectangle {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: expanded ? "▼" : "▶"
+                                text: card.expanded ? "▼" : "▶"
                                 font.pixelSize: 14
                                 color: "white"
                             }
@@ -322,7 +322,7 @@ Rectangle {
                     // Track list (visible when expanded)
                     ColumnLayout {
                         Layout.fillWidth: true
-                        visible: expanded
+                        visible: card.expanded
                         spacing: 5
 
                         Rectangle {
