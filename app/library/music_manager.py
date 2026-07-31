@@ -215,10 +215,16 @@ class MusicManager(QObject):
 
         # Convert to library groups
         for artist_name, artist_data in artists_dict.items():
-            # Create artist card
+            # Collect all tracks from all albums for this artist
+            all_artist_tracks = []
+            for album_data in artist_data["albums"].values():
+                all_artist_tracks.extend(album_data["tracks"])
+
+            # Create artist card with all tracks
             artist_card = {
                 "type": "artist",
                 "name": artist_name,
+                "tracks": all_artist_tracks,
                 "track_count": artist_data["track_count"],
                 "total_duration": artist_data["total_duration"],
                 "album_count": len(artist_data["albums"])
