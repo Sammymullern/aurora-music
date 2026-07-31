@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QUrl, QObject, Signal
 from PySide6.QtQml import QQmlApplicationEngine, QQmlContext
+from PySide6.QtGui import QGuiApplication
 
 from app.player.player import Player
 from app.database.session import db

@@ -6,6 +6,17 @@ Rectangle {
     id: root
     color: "#141428"
 
+    // 3D shadow effect
+    Rectangle {
+        anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
+        width: 8
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#1a1a35" }
+            GradientStop { position: 1.0; color: "#0f0f20" }
+        }
+    }
+
+    // Gradient border
     Rectangle {
         anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
         width: 1
@@ -16,6 +27,8 @@ Rectangle {
         }
         opacity: 0.55
     }
+
+    property string assetsPath: Qt.resolvedUrl("../../assets/icons/")
 
     ColumnLayout {
         anchors.fill: parent
@@ -37,21 +50,13 @@ Rectangle {
                 anchors.rightMargin: 18
                 spacing: 12
 
-                Rectangle {
+                // SVG Logo
+                Image {
                     Layout.preferredWidth: 42
                     Layout.preferredHeight: 42
-                    radius: 10
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#8b5cf6" }
-                        GradientStop { position: 1.0; color: "#6d28d9" }
-                    }
-                    Text {
-                        anchors.centerIn: parent
-                        text: "A"
-                        font.pixelSize: 22
-                        font.bold: true
-                        color: "white"
-                    }
+                    source: assetsPath + "logo.svg"
+                    sourceSize: Qt.size(42, 42)
+                    smooth: true
                 }
 
                 ColumnLayout {
@@ -106,7 +111,7 @@ Rectangle {
             Layout.rightMargin: 10
             Layout.preferredHeight: 46
             text: "Music"
-            icon: "🎵"
+            iconSource: assetsPath + "music.svg"
             viewIndex: 0
             onClicked: contentStack.currentIndex = 0
         }
@@ -117,7 +122,7 @@ Rectangle {
             Layout.preferredHeight: 46
             Layout.topMargin: 2
             text: "Library"
-            icon: "💿"
+            iconSource: assetsPath + "library.svg"
             viewIndex: 1
             onClicked: contentStack.currentIndex = 1
         }
@@ -128,7 +133,7 @@ Rectangle {
             Layout.preferredHeight: 46
             Layout.topMargin: 2
             text: "Playlists"
-            icon: "🎼"
+            iconSource: assetsPath + "playlist.svg"
             viewIndex: 2
             onClicked: contentStack.currentIndex = 2
         }
@@ -163,9 +168,9 @@ Rectangle {
             Layout.rightMargin: 10
             Layout.preferredHeight: 46
             text: "Settings"
-            icon: "⚙️"
-            viewIndex: 3
-            onClicked: contentStack.currentIndex = 3
+            iconSource: assetsPath + "settings.svg"
+            viewIndex: 4
+            onClicked: contentStack.currentIndex = 4
         }
 
         Item {

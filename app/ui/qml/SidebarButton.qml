@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.15
 Rectangle {
     id: root
     property string text: ""
-    property string icon: ""
+    property string iconSource: ""
     property int viewIndex: 0
     property bool isActive: contentStack.currentIndex === viewIndex
 
@@ -17,6 +17,18 @@ Rectangle {
         return "transparent"
     }
     radius: 8
+
+    // 3D shadow effect
+    Rectangle {
+        anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
+        width: root.isActive ? 4 : 0
+        radius: 8
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#3d2a5c" }
+            GradientStop { position: 1.0; color: "#1a1030" }
+        }
+        Behavior on width { NumberAnimation { duration: 180 } }
+    }
 
     // Active-state accent bar (left edge)
     Rectangle {
@@ -36,11 +48,13 @@ Rectangle {
         anchors.rightMargin: 16
         spacing: 12
 
-        Text {
-            text: root.icon
-            font.pixelSize: 17
-            Layout.preferredWidth: 26
+        Image {
+            source: root.iconSource
+            Layout.preferredWidth: 20
+            Layout.preferredHeight: 20
+            sourceSize: Qt.size(20, 20)
             opacity: root.isActive ? 1.0 : 0.85
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
         Text {
