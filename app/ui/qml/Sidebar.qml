@@ -28,7 +28,7 @@ Rectangle {
         opacity: 0.55
     }
 
-    property string assetsPath: Qt.resolvedUrl("../../assets/icons/")
+    property string iconPath: assetsPath || ""
 
     ColumnLayout {
         anchors.fill: parent
@@ -54,7 +54,7 @@ Rectangle {
                 Image {
                     Layout.preferredWidth: 42
                     Layout.preferredHeight: 42
-                    source: assetsPath + "logo.svg"
+                    source: iconPath + "/logo.svg"
                     sourceSize: Qt.size(42, 42)
                     smooth: true
                 }
@@ -111,7 +111,7 @@ Rectangle {
             Layout.rightMargin: 10
             Layout.preferredHeight: 46
             text: "Music"
-            iconSource: assetsPath + "music.svg"
+            iconSource: iconPath + "/music.svg"
             viewIndex: 0
             onClicked: contentStack.currentIndex = 0
         }
@@ -122,7 +122,7 @@ Rectangle {
             Layout.preferredHeight: 46
             Layout.topMargin: 2
             text: "Library"
-            iconSource: assetsPath + "library.svg"
+            iconSource: iconPath + "/library.svg"
             viewIndex: 1
             onClicked: contentStack.currentIndex = 1
         }
@@ -133,7 +133,7 @@ Rectangle {
             Layout.preferredHeight: 46
             Layout.topMargin: 2
             text: "Playlists"
-            iconSource: assetsPath + "playlist.svg"
+            iconSource: iconPath + "/playlist.svg"
             viewIndex: 2
             onClicked: contentStack.currentIndex = 2
         }
@@ -168,7 +168,7 @@ Rectangle {
             Layout.rightMargin: 10
             Layout.preferredHeight: 46
             text: "Settings"
-            iconSource: assetsPath + "settings.svg"
+            iconSource: iconPath + "/settings.svg"
             viewIndex: 4
             onClicked: contentStack.currentIndex = 4
         }

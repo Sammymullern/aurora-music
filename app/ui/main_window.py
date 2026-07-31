@@ -78,6 +78,10 @@ class MainWindow(QObject):
         """Expose Python objects to QML context"""
         context = self.engine.rootContext()
         
+        # Expose assets path
+        assets_path = str(Path(__file__).parent.parent.parent / "assets" / "icons")
+        context.setContextProperty("assetsPath", assets_path)
+        
         # Expose player
         context.setContextProperty("player", self.player)
         
