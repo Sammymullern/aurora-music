@@ -128,46 +128,48 @@ Rectangle {
 
             // Statistics
             RowLayout {
-                spacing: 20
+                spacing: 15
 
-                Rectangle {
-                    Layout.preferredWidth: 1
-                    Layout.fillHeight: true
+                Text {
+                    text: trackCount + " Tracks"
+                    font.pixelSize: 13
+                    color: "#a0a0a0"
+                }
+
+                Text {
+                    text: "•"
+                    font.pixelSize: 13
                     color: "#4a4a6a"
                 }
 
-                ColumnLayout {
-                    spacing: 2
-                    Text {
-                        text: trackCount + " Tracks"
-                        font.pixelSize: 13
-                        color: "#a0a0a0"
-                    }
-                    Text {
-                        text: albumCount + " Albums"
-                        font.pixelSize: 13
-                        color: "#a0a0a0"
-                    }
+                Text {
+                    text: albumCount + " Albums"
+                    font.pixelSize: 13
+                    color: "#a0a0a0"
                 }
 
-                Rectangle {
-                    Layout.preferredWidth: 1
-                    Layout.fillHeight: true
+                Text {
+                    text: "•"
+                    font.pixelSize: 13
                     color: "#4a4a6a"
                 }
 
-                ColumnLayout {
-                    spacing: 2
-                    Text {
-                        text: artistCount + " Artists"
-                        font.pixelSize: 13
-                        color: "#a0a0a0"
-                    }
-                    Text {
-                        text: totalDuration
-                        font.pixelSize: 13
-                        color: "#a0a0a0"
-                    }
+                Text {
+                    text: artistCount + " Artists"
+                    font.pixelSize: 13
+                    color: "#a0a0a0"
+                }
+
+                Text {
+                    text: "•"
+                    font.pixelSize: 13
+                    color: "#4a4a6a"
+                }
+
+                Text {
+                    text: totalDuration
+                    font.pixelSize: 13
+                    color: "#a0a0a0"
                 }
             }
         }
@@ -197,11 +199,11 @@ Rectangle {
             }
 
             // View toggle
-            Row {
+            RowLayout {
                 spacing: 5
                 Rectangle {
-                    width: 40
-                    height: 40
+                    Layout.preferredWidth: 40
+                    Layout.preferredHeight: 40
                     radius: 8
                     color: currentView === "List" ? "#7c3aed" : "#252542"
                     Text {
@@ -219,8 +221,8 @@ Rectangle {
                     }
                 }
                 Rectangle {
-                    width: 40
-                    height: 40
+                    Layout.preferredWidth: 40
+                    Layout.preferredHeight: 40
                     radius: 8
                     color: currentView === "Grid" ? "#7c3aed" : "#252542"
                     Text {
@@ -272,7 +274,7 @@ Rectangle {
                         }
                     }
                 }
-                
+
                 Menu {
                     id: sortMenu
                     MenuItem {
@@ -323,28 +325,16 @@ Rectangle {
                 model: ["All", "Recently Added", "Lossless", "High Bitrate"]
 
                 Rectangle {
-                    Layout.preferredHeight: 35
+                    Layout.preferredHeight: 32
                     Layout.preferredWidth: label.contentWidth + 20
-                    radius: 17
+                    radius: 16
                     color: currentFilter === modelData ? "#7c3aed" : "#252542"
-
-                    // 3D shadow effect for active filter
-                    Rectangle {
-                        anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
-                        width: currentFilter === modelData ? 3 : 0
-                        radius: 17
-                        gradient: Gradient {
-                            GradientStop { position: 0.0; color: "#5b21b6" }
-                            GradientStop { position: 1.0; color: "#4c1d95" }
-                        }
-                        Behavior on width { NumberAnimation { duration: 150 } }
-                    }
 
                     Text {
                         id: label
                         anchors.centerIn: parent
                         text: modelData
-                        font.pixelSize: 13
+                        font.pixelSize: 12
                         color: currentFilter === modelData ? "white" : "#a0a0a0"
                     }
 
