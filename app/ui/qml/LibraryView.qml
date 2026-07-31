@@ -188,7 +188,7 @@ Rectangle {
             Layout.fillHeight: true
             visible: trackCount > 0
             model: libraryGroups
-            spacing: 10
+            spacing: 20
             clip: true
 
             delegate: Rectangle {
