@@ -192,10 +192,18 @@ Rectangle {
             clip: true
 
             delegate: Rectangle {
+                id: card
                 width: ListView.view.width
                 height: expanded ? cardColumn.height + 30 : 100
                 color: "#252542"
                 radius: 12
+
+                Behavior on height {
+                    NumberAnimation {
+                        duration: 200
+                        easing.type: Easing.InOutQuad
+                    }
+                }
 
                 // 3D shadow effect
                 Rectangle {
@@ -305,7 +313,7 @@ Rectangle {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    expanded = !expanded
+                                    card.expanded = !card.expanded
                                 }
                             }
                         }
@@ -390,7 +398,9 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
+                    propagateComposedEvents: true
                     onDoubleClicked: {
+                        propagateComposedEvents = false
                         if (modelData.type === "album" && modelData.tracks && modelData.tracks.length > 0) {
                             if (musicManager) {
                                 musicManager.playSong(modelData.tracks[0].id)
