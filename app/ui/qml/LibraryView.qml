@@ -245,25 +245,25 @@ Rectangle {
                 Layout.preferredHeight: 40
                 radius: 8
                 color: "#252542"
-                
+
                 RowLayout {
                     anchors.fill: parent
                     anchors.margins: 10
                     spacing: 8
-                    
+
                     Text {
                         text: "Sort: " + currentSort
                         font.pixelSize: 13
                         color: "#e0e0e0"
                         Layout.fillWidth: true
                     }
-                    
+
                     Text {
                         text: "▼"
                         font.pixelSize: 10
                         color: "#a0a0a0"
                     }
-                    
+
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor

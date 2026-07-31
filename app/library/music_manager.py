@@ -114,10 +114,11 @@ class MusicManager(QObject):
     
     @staticmethod
     def _is_lossless(track: Track) -> bool:
-        """Determine if a track is lossless based on codec or bitrate"""
+        """Determine if a track is lossless based on format or bitrate"""
         # Lossless formats: FLAC, ALAC, WAV, AIFF, APE, WavPack, DSD
-        lossless_codecs = ['flac', 'alac', 'wav', 'aiff', 'ape', 'wavpack', 'dsd']
-        if track.codec and track.codec.lower() in lossless_codecs:
+        lossless_formats = ['flac', 'alac', 'wav', 'aiff', 'ape', 'wavpack', 'dsd']
+        # Use format attribute instead of codec
+        if hasattr(track, 'format') and track.format and track.format.lower() in lossless_formats:
             return True
         # High bitrate threshold (320+ kbps typically indicates high quality)
         if track.bitrate and track.bitrate >= 320:
