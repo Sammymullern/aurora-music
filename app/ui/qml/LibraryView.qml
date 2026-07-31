@@ -193,7 +193,7 @@ Rectangle {
 
             delegate: Rectangle {
                 width: ListView.view.width
-                height: cardColumn.height + 30
+                height: expanded ? cardColumn.height + 30 : 100
                 color: "#252542"
                 radius: 12
 
