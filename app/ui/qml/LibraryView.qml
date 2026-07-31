@@ -10,13 +10,17 @@ Rectangle {
     property int artistCount: libraryManager ? libraryManager.artistCount : 0
     property string totalDuration: libraryManager ? libraryManager.totalDuration : "0:00:00"
     property var libraryTracks: libraryManager ? libraryManager.libraryTracks : []
+    property var libraryGroups: libraryManager ? libraryManager.libraryGroups : []
+    property var uncategorizedTracks: libraryManager ? libraryManager.uncategorizedTracks : []
     property string currentFilter: "All"
     property string currentSort: "Name"
-    property string currentView: "List"  // List or Grid
+    property string currentView: "Cards"  // Cards or List
 
     Component.onCompleted: {
         if (libraryManager) {
             libraryTracks = libraryManager.libraryTracks
+            libraryGroups = libraryManager.libraryGroups
+            uncategorizedTracks = libraryManager.uncategorizedTracks
         }
     }
 
@@ -25,7 +29,9 @@ Rectangle {
         function onLibraryStatsChanged() {
             if (libraryManager) {
                 libraryTracks = libraryManager.libraryTracks
-                libraryTrackList.model = filterTracks()
+                libraryGroups = libraryManager.libraryGroups
+                uncategorizedTracks = libraryManager.uncategorizedTracks
+                libraryGroupsList.model = filterGroups()
             }
         }
     }
@@ -40,23 +46,73 @@ Rectangle {
         return minutes + ":" + (secs < 10 ? "0" : "") + secs
     }
 
+    function filterGroups() {
+        var filtered = []
+        var searchText = librarySearchInput.text.toLowerCase()
+
+        for (var i = 0; i < libraryGroups.length; i++) {
+            var group = libraryGroups[i]
+            var matchesSearch = true
+
+            if (searchText !== "") {
+                var name = (group.name || "").toLowerCase()
+                var artist = (group.artist || "").toLowerCase()
+                matchesSearch = name.indexOf(searchText) >= 0 ||
+                               (artist && artist.indexOf(searchText) >= 0)
+            }
+
+            var matchesFilter = true
+            if (currentFilter === "Lossless") {
+                matchesFilter = group.lossless === true
+            } else if (currentFilter === "High Bitrate") {
+                // For groups, this doesn't apply much, but we can filter by lossless
+                matchesFilter = group.lossless === true
+            }
+
+            if (matchesSearch && matchesFilter) {
+                filtered.push(group)
+            }
+        }
+
+        // Sort the filtered groups
+        if (currentSort === "Name") {
+            filtered.sort(function(a, b) {
+                var nameA = (a.name || "").toLowerCase()
+                var nameB = (b.name || "").toLowerCase()
+                return nameA.localeCompare(nameB)
+            })
+        } else if (currentSort === "Artist") {
+            filtered.sort(function(a, b) {
+                var artistA = (a.artist || a.name || "").toLowerCase()
+                var artistB = (b.artist || b.name || "").toLowerCase()
+                return artistA.localeCompare(artistB)
+            })
+        } else if (currentSort === "Duration") {
+            filtered.sort(function(a, b) {
+                return (a.total_duration || 0) - (b.total_duration || 0)
+            })
+        }
+
+        return filtered
+    }
+
     function filterTracks() {
         var filtered = []
         var searchText = librarySearchInput.text.toLowerCase()
-        
+
         for (var i = 0; i < libraryTracks.length; i++) {
             var track = libraryTracks[i]
             var matchesSearch = true
-            
+
             if (searchText !== "") {
                 var title = (track.title || "").toLowerCase()
                 var artist = (track.artist || "").toLowerCase()
                 var album = (track.album || "").toLowerCase()
-                matchesSearch = title.indexOf(searchText) >= 0 || 
-                               artist.indexOf(searchText) >= 0 || 
+                matchesSearch = title.indexOf(searchText) >= 0 ||
+                               artist.indexOf(searchText) >= 0 ||
                                album.indexOf(searchText) >= 0
             }
-            
+
             var matchesFilter = true
             if (currentFilter === "Recently Added") {
                 // Filter by recently added (last 30 days)
@@ -69,12 +125,12 @@ Rectangle {
             } else if (currentFilter === "High Bitrate") {
                 matchesFilter = track.bitrate >= 320
             }
-            
+
             if (matchesSearch && matchesFilter) {
                 filtered.push(track)
             }
         }
-        
+
         // Sort the filtered tracks
         if (currentSort === "Name") {
             filtered.sort(function(a, b) {
@@ -103,7 +159,7 @@ Rectangle {
                 return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0)
             })
         }
-        
+
         return filtered
     }
 
@@ -194,13 +250,37 @@ Rectangle {
                 }
                 selectByMouse: true
                 onTextChanged: {
-                    libraryTrackList.model = filterTracks()
+                    if (currentView === "Cards") {
+                        libraryGroupsList.model = filterGroups()
+                    } else {
+                        libraryTrackList.model = filterTracks()
+                    }
                 }
             }
 
             // View toggle
             RowLayout {
                 spacing: 5
+                Rectangle {
+                    Layout.preferredWidth: 40
+                    Layout.preferredHeight: 40
+                    radius: 8
+                    color: currentView === "Cards" ? "#7c3aed" : "#252542"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "⊞"
+                        font.pixelSize: 18
+                        color: "white"
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            currentView = "Cards"
+                            libraryGroupsList.model = filterGroups()
+                        }
+                    }
+                }
                 Rectangle {
                     Layout.preferredWidth: 40
                     Layout.preferredHeight: 40
@@ -217,25 +297,7 @@ Rectangle {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             currentView = "List"
-                        }
-                    }
-                }
-                Rectangle {
-                    Layout.preferredWidth: 40
-                    Layout.preferredHeight: 40
-                    radius: 8
-                    color: currentView === "Grid" ? "#7c3aed" : "#252542"
-                    Text {
-                        anchors.centerIn: parent
-                        text: "⊞"
-                        font.pixelSize: 18
-                        color: "white"
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            currentView = "Grid"
+                            libraryTrackList.model = filterTracks()
                         }
                     }
                 }
@@ -281,35 +343,55 @@ Rectangle {
                         text: "Name"
                         onTriggered: {
                             currentSort = "Name"
-                            libraryTrackList.model = filterTracks()
+                            if (currentView === "Cards") {
+                                libraryGroupsList.model = filterGroups()
+                            } else {
+                                libraryTrackList.model = filterTracks()
+                            }
                         }
                     }
                     MenuItem {
                         text: "Artist"
                         onTriggered: {
                             currentSort = "Artist"
-                            libraryTrackList.model = filterTracks()
+                            if (currentView === "Cards") {
+                                libraryGroupsList.model = filterGroups()
+                            } else {
+                                libraryTrackList.model = filterTracks()
+                            }
                         }
                     }
                     MenuItem {
                         text: "Album"
                         onTriggered: {
                             currentSort = "Album"
-                            libraryTrackList.model = filterTracks()
+                            if (currentView === "Cards") {
+                                libraryGroupsList.model = filterGroups()
+                            } else {
+                                libraryTrackList.model = filterTracks()
+                            }
                         }
                     }
                     MenuItem {
                         text: "Duration"
                         onTriggered: {
                             currentSort = "Duration"
-                            libraryTrackList.model = filterTracks()
+                            if (currentView === "Cards") {
+                                libraryGroupsList.model = filterGroups()
+                            } else {
+                                libraryTrackList.model = filterTracks()
+                            }
                         }
                     }
                     MenuItem {
                         text: "Date Added"
                         onTriggered: {
                             currentSort = "Date Added"
-                            libraryTrackList.model = filterTracks()
+                            if (currentView === "Cards") {
+                                libraryGroupsList.model = filterGroups()
+                            } else {
+                                libraryTrackList.model = filterTracks()
+                            }
                         }
                     }
                 }
@@ -354,7 +436,11 @@ Rectangle {
                         }
                         onClicked: {
                             currentFilter = modelData
-                            libraryTrackList.model = filterTracks()
+                            if (currentView === "Cards") {
+                                libraryGroupsList.model = filterGroups()
+                            } else {
+                                libraryTrackList.model = filterTracks()
+                            }
                         }
                     }
 
@@ -369,7 +455,65 @@ Rectangle {
             Layout.preferredHeight: 1
             color: "#4a4a6a"
         }
-        
+
+        // Uncategorized tracks section (error handling)
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 150
+            visible: uncategorizedTracks.length > 0 && currentView === "Cards"
+            color: "#2a2a4a"
+            radius: 8
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 20
+                spacing: 10
+
+                RowLayout {
+                    spacing: 10
+
+                    Text {
+                        text: "⚠️"
+                        font.pixelSize: 20
+                    }
+
+                    Text {
+                        text: uncategorizedTracks.length + " uncategorized tracks"
+                        font.pixelSize: 14
+                        font.bold: true
+                        color: "#e0e0e0"
+                    }
+                }
+
+                Text {
+                    text: "These tracks couldn't be automatically categorized. Switch to List view to see them."
+                    font.pixelSize: 12
+                    color: "#a0a0a0"
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    text: "Switch to List View"
+                    Layout.preferredWidth: 150
+                    Layout.preferredHeight: 30
+                    background: Rectangle {
+                        color: "#7c3aed"
+                        radius: 15
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "white"
+                        font.pixelSize: 12
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    onClicked: {
+                        currentView = "List"
+                    }
+                }
+            }
+        }
+
         // Empty state
         Rectangle {
             Layout.fillWidth: true
@@ -431,6 +575,125 @@ Rectangle {
                         contentStack.currentIndex = 4
                     }
                 }
+            }
+        }
+
+        // Groups list (Cards view)
+        GridView {
+            id: libraryGroupsList
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: trackCount > 0 && currentView === "Cards"
+            model: filterGroups()
+            cellWidth: 220
+            cellHeight: 180
+            clip: true
+
+            delegate: Rectangle {
+                width: GridView.view.cellWidth - 10
+                height: GridView.view.cellHeight - 10
+                color: "#252542"
+                radius: 12
+
+                // 3D shadow effect
+                Rectangle {
+                    anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
+                    width: 4
+                    radius: 12
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "#3d2a5c" }
+                        GradientStop { position: 1.0; color: "#1a1030" }
+                    }
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 15
+                    spacing: 10
+
+                    // Icon/Art
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 80
+                        radius: 8
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: modelData.type === "artist" ? "#ec4899" : "#8b5cf6" }
+                            GradientStop { position: 1.0; color: modelData.type === "artist" ? "#be185d" : "#7c3aed" }
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: modelData.type === "artist" ? "🎤" : "💿"
+                            font.pixelSize: 40
+                        }
+
+                        // Lossless indicator
+                        Rectangle {
+                            anchors { top: parent.top; right: parent.right }
+                            width: 20
+                            height: 20
+                            radius: 10
+                            color: "#10b981"
+                            visible: modelData.lossless === true
+                            Text {
+                                anchors.centerIn: parent
+                                text: "∞"
+                                font.pixelSize: 12
+                                color: "white"
+                            }
+                        }
+                    }
+
+                    // Info
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        Text {
+                            text: modelData.name || "Unknown"
+                            font.pixelSize: 14
+                            font.bold: true
+                            color: "#e0e0e0"
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            text: modelData.type === "artist" ? 
+                                   (modelData.album_count + " Albums") : 
+                                   modelData.artist
+                            font.pixelSize: 12
+                            color: "#a0a0a0"
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            text: modelData.track_count + " tracks • " + formatDuration(modelData.total_duration || 0)
+                            font.pixelSize: 11
+                            color: "#7c3aed"
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onDoubleClicked: {
+                        if (modelData.type === "album" && modelData.tracks && modelData.tracks.length > 0) {
+                            // Play first track from album
+                            if (musicManager) {
+                                musicManager.playSong(modelData.tracks[0].id)
+                            }
+                        }
+                    }
+                }
+            }
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
             }
         }
 
@@ -511,20 +774,20 @@ Rectangle {
 
                         RowLayout {
                             spacing: 10
-                            
+
                             Text {
                                 text: formatDuration(modelData.duration || 0)
                                 font.pixelSize: 12
                                 color: "#7c3aed"
                             }
-                            
+
                             Text {
                                 text: (modelData.bitrate || 0) + " kbps"
                                 font.pixelSize: 12
                                 color: "#a0a0a0"
                                 visible: modelData.bitrate > 0
                             }
-                            
+
                             Rectangle {
                                 Layout.preferredWidth: 4
                                 Layout.preferredHeight: 4

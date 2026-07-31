@@ -30,6 +30,8 @@ class MusicManager(QObject):
         self._search_query = ""  # Search query string
         self._player = player  # Player instance for playback
         self._library_tracks = []
+        self._library_groups = []
+        self._uncategorized_tracks = []
         self._track_count = 0
         self._album_count = 0
         self._artist_count = 0
@@ -168,9 +170,80 @@ class MusicManager(QObject):
                     "dateAdded": track.added_at.isoformat() if track.added_at else ""
                 })
 
+            # Group songs by artist and album
+            self._group_library_items()
+
             logger.info(f"Library stats: {self._track_count} tracks, {self._album_count} albums, {self._artist_count} artists")
         finally:
             session.close()
+
+    def _group_library_items(self):
+        """Group songs by artist and album for card-based display"""
+        self._library_groups = []
+        self._uncategorized_tracks = []
+
+        # Group by artist
+        artists_dict = {}
+        for track in self._library_tracks:
+            artist_name = track.get("artist", "Unknown")
+            if artist_name not in artists_dict:
+                artists_dict[artist_name] = {
+                    "type": "artist",
+                    "name": artist_name,
+                    "albums": {},
+                    "track_count": 0,
+                    "total_duration": 0
+                }
+            artists_dict[artist_name]["track_count"] += 1
+            artists_dict[artist_name]["total_duration"] += track.get("duration", 0)
+
+            # Group by album within artist
+            album_name = track.get("album", "Unknown")
+            if album_name not in artists_dict[artist_name]["albums"]:
+                artists_dict[artist_name]["albums"][album_name] = {
+                    "name": album_name,
+                    "tracks": [],
+                    "track_count": 0,
+                    "total_duration": 0,
+                    "lossless": False
+                }
+            artists_dict[artist_name]["albums"][album_name]["tracks"].append(track)
+            artists_dict[artist_name]["albums"][album_name]["track_count"] += 1
+            artists_dict[artist_name]["albums"][album_name]["total_duration"] += track.get("duration", 0)
+            if track.get("lossless"):
+                artists_dict[artist_name]["albums"][album_name]["lossless"] = True
+
+        # Convert to library groups
+        for artist_name, artist_data in artists_dict.items():
+            # Create artist card
+            artist_card = {
+                "type": "artist",
+                "name": artist_name,
+                "track_count": artist_data["track_count"],
+                "total_duration": artist_data["total_duration"],
+                "album_count": len(artist_data["albums"])
+            }
+            self._library_groups.append(artist_card)
+
+            # Create album cards for this artist
+            for album_name, album_data in artist_data["albums"].items():
+                album_card = {
+                    "type": "album",
+                    "artist": artist_name,
+                    "name": album_name,
+                    "tracks": album_data["tracks"],
+                    "track_count": album_data["track_count"],
+                    "total_duration": album_data["total_duration"],
+                    "lossless": album_data["lossless"]
+                }
+                self._library_groups.append(album_card)
+
+        # Check for uncategorized tracks (no artist or album info)
+        for track in self._library_tracks:
+            if track.get("artist") == "Unknown" and track.get("album") == "Unknown":
+                self._uncategorized_tracks.append(track)
+
+        logger.info(f"Grouped library: {len(self._library_groups)} groups, {len(self._uncategorized_tracks)} uncategorized")
 
     @staticmethod
     def _format_duration(seconds: Optional[float]) -> str:
@@ -193,6 +266,14 @@ class MusicManager(QObject):
         """Get all library tracks for library view"""
         return self._library_tracks
 
+    def get_library_groups(self) -> List[Dict[str, Any]]:
+        """Get grouped library items (artists and albums)"""
+        return self._library_groups
+
+    def get_uncategorized_tracks(self) -> List[Dict[str, Any]]:
+        """Get uncategorized tracks (no artist/album info)"""
+        return self._uncategorized_tracks
+
     def get_track_count(self) -> int:
         """Get library track count"""
         return self._track_count
@@ -212,6 +293,8 @@ class MusicManager(QObject):
     songs = Property('QVariantList', get_songs, notify=songsChanged)
     songCount = Property(int, get_song_count, notify=songCountChanged)
     libraryTracks = Property('QVariantList', get_library_tracks, notify=libraryStatsChanged)
+    libraryGroups = Property('QVariantList', get_library_groups, notify=libraryStatsChanged)
+    uncategorizedTracks = Property('QVariantList', get_uncategorized_tracks, notify=libraryStatsChanged)
     trackCount = Property(int, get_track_count, notify=libraryStatsChanged)
     albumCount = Property(int, get_album_count, notify=libraryStatsChanged)
     artistCount = Property(int, get_artist_count, notify=libraryStatsChanged)
