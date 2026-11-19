@@ -20,6 +20,9 @@ class PlaylistManager:
     def create_playlist(self, name: str, description: Optional[str] = None) -> Optional[Playlist]:
         """Create a new playlist"""
         try:
+            name = (name or "").strip()
+            if not name:
+                return None
             playlist = Playlist(name=name, description=description)
             self.session.add(playlist)
             self.session.commit()
@@ -51,6 +54,7 @@ class PlaylistManager:
     
     def get_all_playlists(self) -> List[Playlist]:
         """Get all playlists"""
+        self.session.expire_all()
         return self.session.query(Playlist).order_by(Playlist.name).all()
     
     def add_track_to_playlist(self, playlist_id: int, track_id: int) -> bool:
@@ -123,6 +127,9 @@ class PlaylistManager:
     def get_playlist_tracks(self, playlist_id: int) -> List[Track]:
         """Get all tracks in a playlist"""
         try:
+            # Other UI actions (such as favorite toggles) use independent
+            # sessions, so refresh this long-lived manager session before reads.
+            self.session.expire_all()
             playlist = self.session.query(Playlist).filter_by(id=playlist_id).first()
             if playlist:
                 return [pt.track for pt in playlist.tracks]
@@ -274,6 +281,9 @@ class PlaylistManager:
             playlist = self.session.query(Playlist).filter_by(id=playlist_id).first()
             if playlist:
                 if name is not None:
+                    name = name.strip()
+                    if not name:
+                        return False
                     playlist.name = name
                 if description is not None:
                     playlist.description = description

@@ -1035,13 +1035,15 @@ ColumnLayout {
                                                 Layout.preferredWidth: 22
                                                 Layout.preferredHeight: 22
                                                 radius: 11
-                                                color: theme.surface
+                                                color: "#ffffff"
+                                                border.color: modelData.name === "Light" ? "#595959" : "#d1d5db"
+                                                border.width: 1
                                                 Layout.alignment: Qt.AlignHCenter
                                             }
                                             
                                             Text {
                                                 text: modelData.name
-                                                color: modelData.name === "Light" ? "#1a1a2e" : "#ffffff"
+                                                color: modelData.name === "Light" || modelData.name === "Aurora" ? "#1a1a2e" : "#ffffff"
                                                 font.pixelSize: 11
                                                 font.bold: true
                                                 Layout.alignment: Qt.AlignHCenter

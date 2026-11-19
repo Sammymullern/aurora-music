@@ -9,23 +9,33 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
         spacing: 20
-        anchors.margins: 20
+        anchors.margins: 28
         
         // Header
         RowLayout {
             Layout.fillWidth: true
+            spacing: 16
             
             Text {
                 text: "Playlists"
-                font.pixelSize: 28
-                font.bold: true
+                font.pixelSize: 30
+                font.weight: Font.DemiBold
                 color: theme.textPrimary
+            }
+
+            Text {
+                text: "Your music, gathered your way"
+                font.pixelSize: 13
+                color: theme.textSecondary
+                Layout.alignment: Qt.AlignVCenter
             }
             
             Item { Layout.fillWidth: true }
             
             Button {
                 text: "+ New Playlist"
+                Layout.preferredHeight: 42
+                Layout.preferredWidth: 150
                 background: Rectangle {
                     color: theme.primary
                     radius: 8
@@ -58,7 +68,7 @@ Rectangle {
                     font.pixelSize: 80
                     Layout.alignment: Qt.AlignHCenter
                 }
-                
+
                 // Empty state message
                 Text {
                     text: "No playlists yet"
@@ -75,6 +85,21 @@ Rectangle {
                     color: theme.textSecondary
                     Layout.alignment: Qt.AlignHCenter
                 }
+
+                Button {
+                    text: "Create a playlist"
+                    Layout.alignment: Qt.AlignHCenter
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#ffffff"
+                        font.pixelSize: 14
+                        font.weight: Font.DemiBold
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    background: Rectangle { color: theme.primary; radius: 12 }
+                    onClicked: newPlaylistDialog.open()
+                }
             }
         }
         
@@ -83,11 +108,13 @@ Rectangle {
             id: playlistGrid
             Layout.fillWidth: true
             Layout.fillHeight: true
-            cellWidth: 200
-            cellHeight: 250
+            cellWidth: 224
+            cellHeight: 268
             visible: playlistModel.rowCount() > 0
+            clip: true
             
             model: playlistModel
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
             
             Connections {
                 target: playlistModel
@@ -98,26 +125,30 @@ Rectangle {
             }
             
             delegate: PlaylistCard {
-                width: 190
-                height: 240
+                width: 208
+                height: 252
                 name: model.name
+                description: model.description
                 trackCount: model.trackCount
                 playlistId: model.id
                 
                 onClicked: {
                     playlistDetailView.playlistId = model.id
                     playlistDetailView.playlistName = model.name
+                    playlistDetailView.playlistDescription = model.description
                     contentStack.currentIndex = 3
                 }
                 onEditRequested: {
                     editPlaylistDialog.playlistId = model.id
                     editPlaylistNameInput.text = model.name
+                    editPlaylistDescInput.text = model.description
                     editPlaylistDialog.open()
                 }
                 onDeleteRequested: {
                     deleteConfirmDialog.playlistId = model.id
                     deleteConfirmDialog.open()
                 }
+                onDuplicateRequested: playlistController.duplicatePlaylist(model.id)
             }
         }
     }
@@ -125,18 +156,35 @@ Rectangle {
     // New playlist dialog
     Dialog {
         id: newPlaylistDialog
-        title: "Create New Playlist"
+        property string errorMessage: ""
+        title: ""
         modal: true
+        width: 420
+        height: 260
         
         anchors.centerIn: parent
+        background: Rectangle { color: theme.surface; radius: 16; border.color: theme.border }
+        onOpened: errorMessage = ""
         
         ColumnLayout {
             spacing: 15
+            anchors.fill: parent
+            anchors.margins: 22
+
+            Text {
+                text: "Create playlist"
+                color: theme.textPrimary
+                font.pixelSize: 20
+                font.weight: Font.DemiBold
+            }
             
             TextField {
                 id: playlistNameInput
                 Layout.fillWidth: true
                 placeholderText: "Playlist name"
+                color: theme.textPrimary
+                placeholderTextColor: theme.textSecondary
+                background: Rectangle { color: theme.background; radius: 10; border.color: theme.border }
                 selectByMouse: true
             }
             
@@ -144,7 +192,19 @@ Rectangle {
                 id: playlistDescInput
                 Layout.fillWidth: true
                 placeholderText: "Description (optional)"
+                color: theme.textPrimary
+                placeholderTextColor: theme.textSecondary
+                background: Rectangle { color: theme.background; radius: 10; border.color: theme.border }
                 selectByMouse: true
+            }
+
+            Text {
+                Layout.fillWidth: true
+                visible: newPlaylistDialog.errorMessage.length > 0
+                text: newPlaylistDialog.errorMessage
+                color: "#dc2626"
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
             }
             
             RowLayout {
@@ -154,6 +214,8 @@ Rectangle {
                 
                 Button {
                     text: "Cancel"
+                    contentItem: Text { text: parent.text; color: theme.textPrimary; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                    background: Rectangle { color: theme.surfaceVariant; radius: 8 }
                     onClicked: newPlaylistDialog.close()
                 }
                 
@@ -171,11 +233,14 @@ Rectangle {
                         verticalAlignment: Text.AlignVCenter
                     }
                     onClicked: {
-                        if (playlistNameInput.text.length > 0) {
-                            playlistController.createPlaylist(playlistNameInput.text, playlistDescInput.text)
+                        if (playlistController.createPlaylist(playlistNameInput.text, playlistDescInput.text)) {
                             newPlaylistDialog.close()
                             playlistNameInput.text = ""
                             playlistDescInput.text = ""
+                        } else {
+                            newPlaylistDialog.errorMessage = playlistNameInput.text.trim().length === 0
+                                ? "Enter a playlist name."
+                                : "That name is already in use. Choose another name."
                         }
                     }
                 }
@@ -187,18 +252,20 @@ Rectangle {
     Dialog {
         id: editPlaylistDialog
         property int playlistId: 0
+        property string errorMessage: ""
         title: ""
         modal: true
         width: 350
-        height: 200
+        height: 300
         
         anchors.centerIn: parent
         background: Rectangle {
-            color: theme.background
+            color: theme.surface
             radius: 12
             border.color: theme.primary
-            border.width: 2
+            border.width: 1
         }
+        onOpened: errorMessage = ""
         
         ColumnLayout {
             anchors.fill: parent
@@ -249,8 +316,30 @@ Rectangle {
                 background: Rectangle {
                     color: theme.surface
                     radius: 8
+                    border.color: theme.border
                 }
                 selectByMouse: true
+            }
+
+            TextField {
+                id: editPlaylistDescInput
+                Layout.fillWidth: true
+                Layout.preferredHeight: 45
+                placeholderText: "Description (optional)"
+                color: theme.textPrimary
+                placeholderTextColor: theme.textSecondary
+                padding: 10
+                background: Rectangle { color: theme.surface; radius: 8; border.color: theme.border }
+                selectByMouse: true
+            }
+
+            Text {
+                Layout.fillWidth: true
+                visible: editPlaylistDialog.errorMessage.length > 0
+                text: editPlaylistDialog.errorMessage
+                color: "#dc2626"
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
             }
             
             Item { Layout.fillHeight: true }
@@ -279,10 +368,14 @@ Rectangle {
                         verticalAlignment: Text.AlignVCenter
                     }
                     onClicked: {
-                        if (editPlaylistNameInput.text.length > 0) {
-                            playlistController.updatePlaylist(editPlaylistDialog.playlistId, editPlaylistNameInput.text, "")
+                        if (playlistController.updatePlaylist(editPlaylistDialog.playlistId, editPlaylistNameInput.text, editPlaylistDescInput.text)) {
                             editPlaylistDialog.close()
                             editPlaylistNameInput.text = ""
+                            editPlaylistDescInput.text = ""
+                        } else {
+                            editPlaylistDialog.errorMessage = editPlaylistNameInput.text.trim().length === 0
+                                ? "Enter a playlist name."
+                                : "That name is already in use. Choose another name."
                         }
                     }
                 }
@@ -297,14 +390,14 @@ Rectangle {
         title: ""
         modal: true
         width: 350
-        height: 180
+        height: 220
         
         anchors.centerIn: parent
         background: Rectangle {
             color: theme.background
             radius: 12
             border.color: "#ef4444"
-            border.width: 2
+            border.width: 1
         }
         
         ColumnLayout {
@@ -370,7 +463,7 @@ Rectangle {
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "white"
+                        color: theme.textPrimary
                         font.pixelSize: 13
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter

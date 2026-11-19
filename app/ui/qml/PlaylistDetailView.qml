@@ -1,21 +1,56 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "./components"
 
 Rectangle {
     id: root
     color: theme.background
     property int playlistId: 0
     property string playlistName: ""
+    property string playlistDescription: ""
     property var playlistStats: playlistController.getPlaylistStats(root.playlistId)
     
     signal backRequested()
     
     Connections {
-        target: player
-        function onCurrentTrackIdChanged() {
-            playlistTracksList.model = playlistController.getPlaylistTracks(root.playlistId)
+        target: musicManager
+        function onFavoriteToggled(trackId, isFavorite) {
+            root.refreshPlaylist(true)
         }
+        function onLibraryStatsChanged() {
+            if (addTracksDialog.visible)
+                filterAvailableTracks()
+        }
+    }
+
+    onPlaylistIdChanged: root.refreshPlaylist(false)
+
+    function refreshPlaylist(preserveVisibleOrder) {
+        if (!playlistController) return
+        var freshTracks = playlistController.getPlaylistTracks(root.playlistId)
+        if (preserveVisibleOrder && playlistTracksList.model) {
+            var byId = {}
+            for (var i = 0; i < freshTracks.length; i++)
+                byId[String(freshTracks[i].id)] = freshTracks[i]
+            var ordered = []
+            var used = {}
+            var currentTracks = playlistTracksList.model
+            for (var j = 0; j < currentTracks.length; j++) {
+                var currentId = String(currentTracks[j].id)
+                if (byId[currentId]) {
+                    ordered.push(byId[currentId])
+                    used[currentId] = true
+                }
+            }
+            for (var k = 0; k < freshTracks.length; k++) {
+                var freshId = String(freshTracks[k].id)
+                if (!used[freshId]) ordered.push(freshTracks[k])
+            }
+            freshTracks = ordered
+        }
+        playlistTracksList.model = freshTracks
+        playlistStats = playlistController.getPlaylistStats(root.playlistId)
     }
     
     ColumnLayout {
@@ -25,7 +60,7 @@ Rectangle {
         // Hero Header
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 280
+            Layout.preferredHeight: 260
             color: theme.background
             
             // Top navigation row
@@ -57,19 +92,32 @@ Rectangle {
                 }
                 
                 Item { Layout.fillWidth: true }
+
+                Button {
+                    text: "Edit playlist"
+                    Layout.preferredHeight: 38
+                    Layout.preferredWidth: 120
+                    contentItem: Text { text: parent.text; color: theme.textPrimary; font.pixelSize: 12; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                    background: Rectangle { color: theme.surface; radius: 10; border.color: theme.border }
+                    onClicked: {
+                        playlistNameInput.text = root.playlistName
+                        playlistDescriptionInput.text = root.playlistDescription
+                        playlistSettingsDialog.open()
+                    }
+                }
             }
             
             // Main content row
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 30
-                anchors.topMargin: 70
-                spacing: 40
+                anchors.margins: 26
+                anchors.topMargin: 64
+                spacing: 30
                 
                 // Album Art / Gradient
                 Rectangle {
-                    Layout.preferredWidth: 200
-                    Layout.preferredHeight: 200
+                    Layout.preferredWidth: 164
+                    Layout.preferredHeight: 164
                     radius: 12
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "#ec4899" }
@@ -79,7 +127,7 @@ Rectangle {
                     Text {
                         anchors.centerIn: parent
                         text: root.playlistName.charAt(0).toUpperCase()
-                        font.pixelSize: 90
+                        font.pixelSize: 72
                         font.bold: true
                         color: "white"
                     }
@@ -91,7 +139,7 @@ Rectangle {
                     
                     Text {
                         text: root.playlistName
-                        font.pixelSize: 36
+                        font.pixelSize: 32
                         font.bold: true
                         color: theme.textPrimary
                         Layout.fillWidth: true
@@ -105,9 +153,12 @@ Rectangle {
                     }
                     
                     Text {
-                        text: "Created by You"
-                        font.pixelSize: 15
+                        text: root.playlistDescription
+                        visible: root.playlistDescription.length > 0
+                        font.pixelSize: 13
                         color: theme.textSecondary
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
                     }
                     
                     Item { Layout.fillHeight: true }
@@ -127,7 +178,7 @@ Rectangle {
                             }
                             contentItem: Text {
                                 text: parent.text
-                                color: "white"
+                                color: "#ffffff"
                                 font.pixelSize: 14
                                 font.bold: true
                                 horizontalAlignment: Text.AlignHCenter
@@ -153,7 +204,7 @@ Rectangle {
                             }
                             contentItem: Text {
                                 text: parent.text
-                                color: "white"
+                                color: theme.textPrimary
                                 font.pixelSize: 14
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
@@ -187,7 +238,7 @@ Rectangle {
                             }
                             contentItem: Text {
                                 text: parent.text
-                                color: "white"
+                                color: theme.textPrimary
                                 font.pixelSize: 14
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
@@ -274,23 +325,37 @@ Rectangle {
             }
             
             delegate: Rectangle {
+                id: playlistTrackRow
                 width: ListView.view.width
                 height: 76
-                color: modelData.id == player.currentTrackId ? theme.surfaceVariant : "transparent"
-                radius: 8
+                readonly property bool isCurrent: player && String(modelData.id) === String(player.currentTrackId)
+                color: isCurrent ? theme.surfaceVariant : theme.surface
+                radius: 12
+                border.width: isCurrent ? 1 : 0
+                border.color: theme.primary
                 
                 RowLayout {
+                    z: 1
                     anchors.fill: parent
                     anchors.margins: 10
-                    spacing: 20
+                    spacing: 14
                     
                     // Track number or play icon for currently playing
-                    Text {
-                        text: modelData.id == player.currentTrackId ? "▶" : (index + 1)
-                        font.pixelSize: modelData.id == player.currentTrackId ? 12 : 14
-                        color: modelData.id == player.currentTrackId ? theme.primary : theme.textSecondary
+                    Item {
                         Layout.preferredWidth: 30
-                        horizontalAlignment: Text.AlignHCenter
+                        Layout.preferredHeight: 26
+                        PlayingIndicator {
+                            anchors.centerIn: parent
+                            active: playlistTrackRow.isCurrent
+                            playing: active && player.isPlaying
+                        }
+                        Text {
+                            anchors.centerIn: parent
+                            visible: !playlistTrackRow.isCurrent
+                            text: index + 1
+                            font.pixelSize: 14
+                            color: theme.textSecondary
+                        }
                     }
                     
                     // Track info
@@ -324,6 +389,29 @@ Rectangle {
                         color: theme.textSecondary
                         Layout.preferredWidth: 50
                         horizontalAlignment: Text.AlignRight
+                    }
+
+                    Button {
+                        z: 2
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        text: modelData.favorite ? "♥" : "♡"
+                        contentItem: Text {
+                            text: parent.text
+                            color: modelData.favorite ? "#ef4444" : theme.textSecondary
+                            font.pixelSize: 19
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        ToolTip.text: modelData.favorite ? "Remove from favorites" : "Add to favorites"
+                        ToolTip.visible: hovered
+                        background: Rectangle {
+                            radius: 19
+                            color: parent.hovered ? theme.surfaceVariant : "transparent"
+                        }
+                        onClicked: {
+                            if (musicManager) musicManager.toggleFavorite(String(modelData.id))
+                        }
                     }
                 }
                 
@@ -372,6 +460,28 @@ Rectangle {
                             playlistTracksList.model = tracks
                         }
                     }
+
+                    MenuItem {
+                        text: "Move up"
+                        enabled: index > 0
+                        contentItem: Text { text: parent.text; color: parent.enabled ? theme.textPrimary : theme.textDisabled; font.pixelSize: 14; verticalAlignment: Text.AlignVCenter; leftPadding: 15 }
+                        background: Rectangle { color: parent.hovered ? theme.surfaceVariant : "transparent"; radius: 8 }
+                        onTriggered: {
+                            if (playlistController.moveTrackInPlaylist(root.playlistId, modelData.id, index))
+                                root.refreshPlaylist(false)
+                        }
+                    }
+
+                    MenuItem {
+                        text: "Move down"
+                        enabled: index < playlistTracksList.count - 1
+                        contentItem: Text { text: parent.text; color: parent.enabled ? theme.textPrimary : theme.textDisabled; font.pixelSize: 14; verticalAlignment: Text.AlignVCenter; leftPadding: 15 }
+                        background: Rectangle { color: parent.hovered ? theme.surfaceVariant : "transparent"; radius: 8 }
+                        onTriggered: {
+                            if (playlistController.moveTrackInPlaylist(root.playlistId, modelData.id, index + 2))
+                                root.refreshPlaylist(false)
+                        }
+                    }
                     
                     MenuItem {
                         text: "🗑 Remove from Playlist"
@@ -389,8 +499,7 @@ Rectangle {
                         }
                         onTriggered: {
                             playlistController.removeTrackFromPlaylist(root.playlistId, modelData.id)
-                            playlistTracksList.model = playlistController.getPlaylistTracks(root.playlistId)
-                            root.playlistStats = playlistController.getPlaylistStats(root.playlistId)
+                            root.refreshPlaylist(true)
                         }
                     }
                 }
@@ -443,25 +552,23 @@ Rectangle {
     
     function filterAvailableTracks() {
         var searchText = trackSearchInput.text.toLowerCase()
-        var allTracks = musicManager.songs
+        var allTracks = musicManager ? musicManager.libraryTracks : []
+        var playlistTracks = playlistController.getPlaylistTracks(root.playlistId)
+        var playlistIds = {}
+        for (var p = 0; p < playlistTracks.length; p++)
+            playlistIds[String(playlistTracks[p].id)] = true
         var filtered = []
-        
-        if (searchText === "") {
-            availableTracksList.model = allTracks
-            return
-        }
-        
         for (var i = 0; i < allTracks.length; i++) {
             var track = allTracks[i]
+            if (playlistIds[String(track.id)]) continue
             var title = (track.title || "").toLowerCase()
             var artist = (track.artist || "").toLowerCase()
             var album = (track.album || "").toLowerCase()
-            
-            if (title.indexOf(searchText) >= 0 || artist.indexOf(searchText) >= 0 || album.indexOf(searchText) >= 0) {
+
+            if (searchText === "" || title.indexOf(searchText) >= 0 || artist.indexOf(searchText) >= 0 || album.indexOf(searchText) >= 0) {
                 filtered.push(track)
             }
         }
-        
         availableTracksList.model = filtered
     }
     
@@ -471,7 +578,7 @@ Rectangle {
         title: ""
         modal: true
         width: 350
-        height: 200
+        height: 280
         
         anchors.centerIn: parent
         background: Rectangle {
@@ -531,7 +638,22 @@ Rectangle {
                 background: Rectangle {
                     color: theme.surface
                     radius: 8
+                    border.color: theme.border
                 }
+                selectByMouse: true
+            }
+
+            TextField {
+                id: playlistDescriptionInput
+                Layout.fillWidth: true
+                Layout.preferredHeight: 45
+                placeholderText: "Description (optional)"
+                text: root.playlistDescription
+                color: theme.textPrimary
+                placeholderTextColor: theme.textSecondary
+                font.pixelSize: 13
+                padding: 10
+                background: Rectangle { color: theme.surface; radius: 8; border.color: theme.border }
                 selectByMouse: true
             }
             
@@ -543,24 +665,22 @@ Rectangle {
                 spacing: 15
                 
                 Button {
-                    text: "🗑"
+                    text: "Delete"
                     Layout.preferredHeight: 40
-                    Layout.preferredWidth: 40
+                    Layout.preferredWidth: 92
                     background: Rectangle {
                         color: "#ef4444"
                         radius: 20
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "white"
+                        color: theme.textPrimary
                         font.pixelSize: 16
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
                     onClicked: {
-                        playlistController.deletePlaylist(root.playlistId)
-                        contentStack.currentIndex = 2
-                        playlistSettingsDialog.close()
+                        deletePlaylistDialog.open()
                     }
                 }
                 
@@ -583,9 +703,11 @@ Rectangle {
                         verticalAlignment: Text.AlignVCenter
                     }
                     onClicked: {
-                        playlistController.updatePlaylist(root.playlistId, playlistNameInput.text, "")
-                        root.playlistName = playlistNameInput.text
-                        playlistSettingsDialog.close()
+                        if (playlistController.updatePlaylist(root.playlistId, playlistNameInput.text, playlistDescriptionInput.text)) {
+                            root.playlistName = playlistNameInput.text.trim()
+                            root.playlistDescription = playlistDescriptionInput.text.trim()
+                            playlistSettingsDialog.close()
+                        }
                     }
                 }
             }
@@ -595,12 +717,13 @@ Rectangle {
     // Add tracks dialog
     Dialog {
         id: addTracksDialog
-        title: "Add Tracks to Playlist"
+        title: ""
         modal: true
-        width: 900
-        height: 600
+        width: Math.max(360, Math.min(920, root.width - 48))
+        height: Math.max(400, Math.min(640, root.height - 64))
         
         property var selectedTracks: []
+        property string errorMessage: ""
         
         anchors.centerIn: parent
         background: Rectangle {
@@ -608,6 +731,13 @@ Rectangle {
             radius: 12
             border.color: theme.primary
             border.width: 2
+        }
+        onOpened: {
+            selectedTracks = []
+            selectedTracksList.model = []
+            errorMessage = ""
+            trackSearchInput.clear()
+            filterAvailableTracks()
         }
         
         ColumnLayout {
@@ -681,7 +811,7 @@ Rectangle {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             Layout.margins: 10
-                            model: musicManager.songs
+                            model: musicManager ? musicManager.libraryTracks : []
                             spacing: 8
                             clip: true
                             
@@ -815,7 +945,7 @@ Rectangle {
                             Layout.preferredHeight: 50
                             color: theme.background
                             radius: 12
-                            
+
                             Text {
                                 anchors.centerIn: parent
                                 text: "Selected (" + addTracksDialog.selectedTracks.length + ")"
@@ -914,6 +1044,14 @@ Rectangle {
                 }
             }
             
+            Text {
+                Layout.fillWidth: true
+                visible: addTracksDialog.errorMessage.length > 0
+                text: addTracksDialog.errorMessage
+                color: "#dc2626"
+                font.pixelSize: 12
+            }
+
             // Bottom buttons
             RowLayout {
                 Layout.fillWidth: true
@@ -929,7 +1067,7 @@ Rectangle {
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "white"
+                        color: theme.textPrimary
                         font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -954,21 +1092,59 @@ Rectangle {
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "white"
+                        color: parent.enabled ? "#ffffff" : theme.textDisabled
                         font.pixelSize: 14
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
                     onClicked: {
-                        for (var i = 0; i < addTracksDialog.selectedTracks.length; i++) {
-                            playlistController.addTrackToPlaylist(root.playlistId, addTracksDialog.selectedTracks[i].id)
+                        var ids = addTracksDialog.selectedTracks.map(function(track) { return track.id })
+                        var added = playlistController.addTracksToPlaylist(root.playlistId, ids)
+                        if (added > 0) {
+                            root.refreshPlaylist(true)
+                            addTracksDialog.close()
+                        } else {
+                            addTracksDialog.errorMessage = "Those songs are already in this playlist."
                         }
-                        playlistTracksList.model = playlistController.getPlaylistTracks(root.playlistId)
-                        root.playlistStats = playlistController.getPlaylistStats(root.playlistId)
-                        addTracksDialog.selectedTracks = []
-                        selectedTracksList.model = []
-                        addTracksDialog.close()
+                    }
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: deletePlaylistDialog
+        anchors.centerIn: parent
+        modal: true
+        title: ""
+        width: 400
+        background: Rectangle { color: theme.surface; radius: 16; border.color: theme.border }
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 22
+            spacing: 16
+            Text { text: "Delete playlist?"; color: theme.textPrimary; font.pixelSize: 20; font.weight: Font.DemiBold }
+            Text {
+                Layout.fillWidth: true
+                text: "This removes the playlist and its saved order. Your music files are not affected."
+                color: theme.textSecondary
+                wrapMode: Text.WordWrap
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Item { Layout.fillWidth: true }
+                Button { text: "Cancel"; onClicked: deletePlaylistDialog.close() }
+                Button {
+                    text: "Delete playlist"
+                    contentItem: Text { text: parent.text; color: "#ffffff"; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                    background: Rectangle { color: "#dc2626"; radius: 9 }
+                    onClicked: {
+                        if (playlistController.deletePlaylist(root.playlistId)) {
+                            contentStack.currentIndex = 2
+                            deletePlaylistDialog.close()
+                            playlistSettingsDialog.close()
+                        }
                     }
                 }
             }

@@ -10,7 +10,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 from app.database.session import db
-from app.database.models import Track
+from app.database.models import Track, PlaylistTrack
 from app.library.scanner import LibraryScanner
 from app.metadata.extractor import MetadataExtractor
 
@@ -97,8 +97,23 @@ class LibraryEventHandler(FileSystemEventHandler):
         try:
             track = session.query(Track).filter_by(file_path=str(file_path)).first()
             if track:
+                links = session.query(PlaylistTrack).filter_by(track_id=track.id).all()
+                affected_playlists = {link.playlist_id for link in links}
+                for link in links:
+                    session.delete(link)
                 session.delete(track)
                 session.commit()
+                for playlist_id in affected_playlists:
+                    remaining = (
+                        session.query(PlaylistTrack)
+                        .filter_by(playlist_id=playlist_id)
+                        .order_by(PlaylistTrack.position)
+                        .all()
+                    )
+                    for position, link in enumerate(remaining, start=1):
+                        link.position = position
+                if affected_playlists:
+                    session.commit()
                 logger.info(f"Removed track: {file_path}")
                 
                 if self.callback:

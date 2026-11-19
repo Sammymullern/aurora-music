@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "./components"
 
 Rectangle {
     id: root
@@ -433,27 +434,34 @@ Rectangle {
                             model: musicManager ? musicManager.songs : []
 
                             delegate: Rectangle {
+                                id: delegateRoot
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 50
-                                color: (index % 2 === 0) ? theme.surface : theme.backgroundLight
+                                color: isActive ? theme.surfaceVariant : ((index % 2 === 0) ? theme.surface : theme.backgroundLight)
                                 property bool isHovered: false
-                                readonly property bool _safePlayerReady: Boolean(player)
-                                readonly property string _safeTrackTitle: _safePlayerReady ? String(player.currentTitle || "") : ""
-                                readonly property bool isActive: _safePlayerReady && (_safeTrackTitle === String(modelData.title || ""))
+                                readonly property bool isActive: Boolean(player) && String(player.currentTrackId || "") === String(modelData.id)
                                 readonly property bool isFav: Boolean(modelData.favorite)
 
                                 RowLayout {
+                                    z: 1
                                     anchors.fill: parent
                                     anchors.leftMargin: 18
                                     anchors.rightMargin: 18
                                     spacing: 16
 
-                                    Text {
+                                    PlayingIndicator {
                                         Layout.preferredWidth: 40
-                                        text: parent.isActive ? "♪" : (index + 1)
-                                        font.pixelSize: 13
-                                        color: parent.isActive ? theme.primary : "#606090"
-                                        font.bold: parent.isActive ? true : false
+                                        Layout.preferredHeight: 22
+                                        active: delegateRoot.isActive
+                                        playing: active && player && player.isPlaying
+                                        color: theme.primary
+                                        Text {
+                                            anchors.centerIn: parent
+                                            visible: !delegateRoot.isActive
+                                            text: index + 1
+                                            font.pixelSize: 13
+                                            color: theme.textSecondary
+                                        }
                                     }
 
                                     Text {
@@ -461,8 +469,8 @@ Rectangle {
                                         Layout.minimumWidth: 200
                                         text: modelData.title || "Unknown"
                                         font.pixelSize: 13
-                                    color: parent.isActive ? theme.primary : theme.textPrimary
-                                        font.bold: parent.isActive ? true : false
+                                        color: delegateRoot.isActive ? theme.primary : theme.textPrimary
+                                        font.bold: delegateRoot.isActive
                                         elide: Text.ElideRight
                                     }
 
@@ -494,22 +502,27 @@ Rectangle {
                                         Layout.preferredWidth: 36
                                         Layout.preferredHeight: 36
                                         radius: 18
-                                        color: Boolean(parent.isFav) ? "#ef4444" : "transparent"
-                                        visible: Boolean(parent.isHovered) || Boolean(parent.isFav)
-                                        opacity: Boolean(parent.isFav) ? 1.0 : (Boolean(parent.isHovered) ? 0.85 : 0)
+                                        z: 2
+                                        color: delegateRoot.isFav ? "#ef4444" : "transparent"
+                                        visible: delegateRoot.isHovered || delegateRoot.isFav
+                                        opacity: delegateRoot.isFav ? 1.0 : (delegateRoot.isHovered ? 0.85 : 0)
                                         Behavior on opacity { NumberAnimation { duration: 120 } }
 
                                         Text {
                                             anchors.centerIn: parent
-                                            text: Boolean(parent.isFav) ? "♥" : "♡"
+                                            text: delegateRoot.isFav ? "♥" : "♡"
                                             font.pixelSize: 16
-                                            color: Boolean(parent.isFav) ? "#ffffff" : "#ef4444"
+                                            color: delegateRoot.isFav ? "#ffffff" : "#ef4444"
                                         }
 
                                         MouseArea {
                                             anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            ToolTip.visible: containsMouse
+                                            ToolTip.text: delegateRoot.isFav ? "Remove from favorites" : "Add to favorites"
                                             onClicked: {
-                                                if (musicManager) musicManager.toggleFavorite(modelData.id)
+                                                if (musicManager) musicManager.toggleFavorite(String(modelData.id))
                                             }
                                         }
                                     }
@@ -521,7 +534,7 @@ Rectangle {
                                     cursorShape: Qt.PointingHandCursor
                                     onEntered: {
                                         parent.isHovered = true
-                                        parent.color = parent.isActive ? theme.surfaceVariant : theme.surfaceVariant
+                                        parent.color = theme.surfaceVariant
                                     }
                                     onExited: {
                                         parent.isHovered = false

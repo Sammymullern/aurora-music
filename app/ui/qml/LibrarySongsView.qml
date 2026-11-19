@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "./components"
 
 Rectangle {
     id: root
@@ -102,17 +103,27 @@ Rectangle {
                 Behavior on color { ColorAnimation { duration: 150 } }
 
                 RowLayout {
+                    z: 1
                     anchors.fill: parent
                     anchors.margins: 10
                     spacing: 15
 
                     // Track number
-                    Text {
+                    Item {
+                        Layout.preferredWidth: 40
+                        Layout.preferredHeight: 22
+                        PlayingIndicator {
+                            anchors.centerIn: parent
+                            active: String(modelData.id) === String(player.currentTrackId)
+                            playing: active && player.isPlaying
+                        }
+                        Text {
+                            anchors.centerIn: parent
+                            visible: String(modelData.id) !== String(player.currentTrackId)
                         text: index + 1
                         font.pixelSize: 16
                         color: theme.textSecondary
-                        Layout.preferredWidth: 40
-                        horizontalAlignment: Text.AlignHCenter
+                        }
                     }
 
                     // Track info

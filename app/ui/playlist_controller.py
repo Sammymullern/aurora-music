@@ -91,7 +91,10 @@ class PlaylistController(QObject):
     def createPlaylist(self, name: str, description: str = "") -> bool:
         """Create a new playlist"""
         try:
-            result = self._manager.create_playlist(name, description if description else None)
+            name = (name or "").strip()
+            if not name:
+                return False
+            result = self._manager.create_playlist(name, (description or "").strip() or None)
             if result:
                 self._model.refresh()
                 self.playlistsChanged.emit()
@@ -119,10 +122,13 @@ class PlaylistController(QObject):
     def updatePlaylist(self, playlist_id: int, name: str, description: str = "") -> bool:
         """Update playlist information"""
         try:
+            clean_name = (name or "").strip()
+            if not clean_name:
+                return False
             result = self._manager.update_playlist(
-                playlist_id, 
-                name if name else None, 
-                description if description else None
+                playlist_id,
+                clean_name,
+                (description or "").strip(),
             )
             if result:
                 self._model.refresh()
@@ -158,6 +164,21 @@ class PlaylistController(QObject):
         except Exception as e:
             logger.error(f"Failed to add track to playlist: {e}")
             return False
+
+    @Slot(int, "QVariantList", result=int)
+    def addTracksToPlaylist(self, playlist_id: int, track_ids) -> int:
+        """Add selected songs in one transaction and refresh playlist counts once."""
+        try:
+            added = self._manager.add_tracks_to_playlist(
+                playlist_id, [int(track_id) for track_id in track_ids]
+            )
+            if added:
+                self._model.refresh()
+                self.playlistsChanged.emit()
+            return added
+        except Exception as e:
+            logger.error(f"Failed to add selected tracks to playlist: {e}")
+            return 0
     
     @Slot(int, int, result=bool)
     def removeTrackFromPlaylist(self, playlist_id: int, track_id: int) -> bool:
@@ -175,7 +196,11 @@ class PlaylistController(QObject):
     def moveTrackInPlaylist(self, playlist_id: int, track_id: int, new_position: int) -> bool:
         """Move a track to a new position in the playlist"""
         try:
-            return self._manager.move_track_in_playlist(playlist_id, track_id, new_position)
+            result = self._manager.move_track_in_playlist(playlist_id, track_id, new_position)
+            if result:
+                self._model.refresh()
+                self.playlistsChanged.emit()
+            return result
         except Exception as e:
             logger.error(f"Failed to move track in playlist: {e}")
             return False

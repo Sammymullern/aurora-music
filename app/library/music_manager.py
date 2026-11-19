@@ -346,31 +346,38 @@ class MusicManager(QObject):
         finally:
             session.close()
 
-    @Slot(str)
+    @Slot(str, result=bool)
     def toggleFavorite(self, song_id: str):
         """Toggle favorite status for a song and notify everyone."""
+        try:
+            track_id = int(song_id)
+        except (TypeError, ValueError):
+            return False
         session = db.get_session()
         try:
-            track = session.query(Track).filter(Track.id == int(song_id)).first()
-            if track:
-                track.favorite = not track.favorite
-                new_val = bool(track.favorite)
-                session.commit()
-                logger.info(f"Toggled favorite for song {song_id}: {new_val}")
-                # Notify song list (reloads rows)
-                self._load_songs()
-                self.songsChanged.emit()
-                self.songCountChanged.emit()
-                # Notify player bar (so the heart icon there reflects the DB)
-                if self._player:
-                    try:
-                        current_id_str = str(getattr(self._player, "currentTrackId", "") or "")
-                        if current_id_str == str(song_id):
-                            self._player.set_currentTrackFavorite(new_val)
-                    except Exception as pe:
-                        logger.debug(f"Could not sync player favorite state: {pe}")
-                # Emit signal so any QML listener can also react (log-less safe notify)
-                self.favoriteToggled.emit(str(song_id), new_val)
+            track = session.query(Track).filter(Track.id == track_id).first()
+            if not track:
+                return False
+            track.favorite = not track.favorite
+            new_val = bool(track.favorite)
+            session.commit()
+            logger.info(f"Toggled favorite for song {song_id}: {new_val}")
+            self._load_songs()
+            self.songsChanged.emit()
+            self.songCountChanged.emit()
+            if self._player:
+                try:
+                    current_id_str = str(getattr(self._player, "currentTrackId", "") or "")
+                    if current_id_str == str(song_id):
+                        self._player.set_currentTrackFavorite(new_val)
+                except Exception as pe:
+                    logger.debug(f"Could not sync player favorite state: {pe}")
+            self.favoriteToggled.emit(str(song_id), new_val)
+            return True
+        except Exception:
+            session.rollback()
+            logger.exception("Failed to toggle favorite for song %s", song_id)
+            return False
         finally:
             session.close()
     
