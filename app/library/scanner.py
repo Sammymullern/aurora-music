@@ -32,6 +32,13 @@ class LibraryScanner:
             return 0
         
         logger.info(f"Scanning directory: {directory}")
+
+        # Load the existing index once. A query for every file made recurring
+        # background scans increasingly expensive for large libraries.
+        existing_tracks = {
+            track.file_path: track
+            for track in self.session.query(Track).all()
+        }
         
         # Find all audio files
         audio_files = self._find_audio_files(directory)
@@ -51,7 +58,7 @@ class LibraryScanner:
                 logger.info("Scan cancelled")
                 break
             try:
-                if self._process_file(file_path):
+                if self._process_file(file_path, existing_tracks):
                     added_count += 1
             except Exception as e:
                 logger.error(f"Error processing {file_path}: {e}")
@@ -72,13 +79,21 @@ class LibraryScanner:
         
         return audio_files
     
-    def _process_file(self, file_path: Path) -> bool:
+    def _process_file(self, file_path: Path, existing_tracks: Optional[dict] = None) -> bool:
         """Process a single audio file"""
-        # Check if track already exists
-        existing = self.session.query(Track).filter_by(file_path=str(file_path)).first()
+        # Check the per-scan index when available, otherwise query for watcher events.
+        existing = (
+            existing_tracks.get(str(file_path))
+            if existing_tracks is not None
+            else self.session.query(Track).filter_by(file_path=str(file_path)).first()
+        )
         if existing:
             # Update if file was modified
-            if file_path.stat().st_mtime > existing.scanned_at.timestamp():
+            try:
+                modified_at = file_path.stat().st_mtime
+            except OSError:
+                return False
+            if modified_at > existing.scanned_at.timestamp():
                 return self._update_track(existing, file_path)
             return False
         
@@ -122,6 +137,8 @@ class LibraryScanner:
         )
         
         self.session.add(track)
+        if existing_tracks is not None:
+            existing_tracks[str(file_path)] = track
         return True
     
     def _update_track(self, track: Track, file_path: Path) -> bool:

@@ -20,6 +20,24 @@ def test_audio_and_theme_settings_persist(tmp_path, monkeypatch):
     assert reloaded.audioBuffer == 0.73
 
 
+def test_music_folders_are_discovered_and_persisted(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    default_music = tmp_path / "Music"
+    extra_music = tmp_path / "External Music"
+    default_music.mkdir()
+    extra_music.mkdir()
+
+    settings = SettingsManager()
+    assert settings.musicFolders == [str(default_music)]
+
+    settings.addMusicFolder(str(extra_music))
+    reloaded = SettingsManager()
+    assert reloaded.musicFolders == [str(default_music), str(extra_music)]
+
+    reloaded.removeMusicFolder(str(default_music))
+    assert SettingsManager().musicFolders == [str(extra_music)]
+
+
 def test_clean_missing_tracks_removes_playlist_links(tmp_path):
     db.close()
     db.initialize(tmp_path / "library.db")

@@ -47,7 +47,7 @@ class MainWindow(QObject):
         self.library_watcher = None
         self.scan_timer = QTimer(self)
         self.scan_timer.timeout.connect(self.settings.rescanLibrary)
-        self.settings.musicFoldersChanged.connect(self._refresh_library_monitoring)
+        self.settings.musicFoldersChanged.connect(self._on_music_folders_changed)
         self.settings.watchFoldersAutomaticallyChanged.connect(self._refresh_library_monitoring)
         self.settings.scanFrequencyChanged.connect(self._refresh_library_monitoring)
         self.settings.libraryStatsChanged.connect(self.music_manager.refreshLibrary)
@@ -73,6 +73,8 @@ class MainWindow(QObject):
         
         # Setup QML engine
         self._setup_qml()
+        # Populate the library without requiring the user to press Scan.
+        QTimer.singleShot(1200, self.settings.scanLibrary)
         
         logger.info("Main window initialized")
     
@@ -159,12 +161,17 @@ class MainWindow(QObject):
             if self.library_watcher.handlers:
                 self.library_watcher.start()
 
-        intervals = {"Every 15 min": 15 * 60 * 1000, "Every hour": 60 * 60 * 1000}
-        interval = intervals.get(self.settings.scanFrequency)
-        if interval and self.settings.musicFolders:
-            self.scan_timer.start(interval)
-        else:
-            self.scan_timer.stop()
+        intervals = {
+            "Every 5 min": 5 * 60 * 1000,
+            "Every 15 min": 15 * 60 * 1000,
+            "Every hour": 60 * 60 * 1000,
+        }
+        self.scan_timer.start(intervals.get(self.settings.scanFrequency, 5 * 60 * 1000))
+
+    def _on_music_folders_changed(self) -> None:
+        self._refresh_library_monitoring()
+        # New folders are indexed in the background as soon as they are added.
+        QTimer.singleShot(0, self.settings.scanLibrary)
 
     def _on_track_changed(self, _path: str) -> None:
         if self.settings.showCurrentlyPlaying:

@@ -755,7 +755,7 @@ ColumnLayout {
                                     }
                                     
                                     Text {
-                                        text: root.tr("How often to check for changes")
+                                        text: root.tr("New tracks are also picked up as soon as they appear")
                                         font.pixelSize: 13
                                         color: theme.textSecondary
                                         lineHeight: 1.4
@@ -766,7 +766,7 @@ ColumnLayout {
                                     Layout.fillWidth: true
                                     Layout.maximumWidth: 600
                                     Layout.preferredHeight: 48
-                                    model: ["Manual", "Every 15 min", "Every hour"]
+                                    model: ["Every 5 min", "Every 15 min", "Every hour"]
                                     currentIndex: {
                                         if (!settings) return 0
                                         var index = model.indexOf(settings.scanFrequency)

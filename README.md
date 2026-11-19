@@ -61,14 +61,14 @@ pip install -r requirements-dev.txt
 
 When you first launch Aurora Music:
 
-1. **Add Music Library**: Open Settings, add folders in the Library section, then open Library and choose **Scan Library**
-2. **Keep It Updated**: Enable **Watch folders automatically** in Settings, or choose a scheduled scan frequency
+1. **Add Music Library**: Aurora automatically adds `~/Music` when it exists. Add other folders in Settings → Library or with **Add Folder** on the Library page.
+2. **Keep It Updated**: Saved folders are scanned at startup, watched for new files, and rescanned periodically. Added folders remain saved until removed.
 3. **Start Playing**: Browse your library and click play on any track
 
 ### Main Features
 
 **Library Management**
-- Automatic folder monitoring with watchdog
+- Automatic folder monitoring with watchdog and periodic catch-up scans
 - Support for 12+ audio formats
 - Metadata extraction using Mutagen
 - Instant search and filtering

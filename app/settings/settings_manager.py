@@ -8,7 +8,7 @@ import urllib.request
 import urllib.error
 import re
 from pathlib import Path
-from PySide6.QtCore import QObject, Signal, Property, Slot, QRunnable, QThreadPool, QProcess
+from PySide6.QtCore import QObject, Signal, Property, Slot, QRunnable, QThreadPool, QProcess, QTimer
 from PySide6.QtWidgets import QApplication, QFileDialog
 try:
     from PySide6.QtDBus import QDBusMessage, QDBusConnection
@@ -152,6 +152,7 @@ class SettingsManager(QObject):
         self._update_status = ""
         self._library_busy = False
         self._library_operation_status = ""
+        self._scan_requested_after_current_task = False
     
     def _ensure_settings_dir(self):
         """Ensure settings directory exists"""
@@ -169,9 +170,9 @@ class SettingsManager(QObject):
             "language": "English",
             "show_desktop_notifications": True,
             "show_currently_playing": True,
-            "music_folders": [],
+            "music_folders": [str(Path.home() / "Music")] if (Path.home() / "Music").is_dir() else [],
             "watch_folders_automatically": True,
-            "scan_frequency": "Manual",
+            "scan_frequency": "Every 15 min",
             "output_device": "auto",
             "audio_buffer": 0.2,
             "theme": "Light",
@@ -188,11 +189,40 @@ class SettingsManager(QObject):
 
         if default_settings.get("output_device") == "Default":
             default_settings["output_device"] = "auto"
+        if default_settings.get("scan_frequency") == "Manual":
+            default_settings["scan_frequency"] = "Every 15 min"
+        default_settings["scan_frequency"] = default_settings.get("scan_frequency") or "Every 15 min"
+        folders = default_settings.get("music_folders")
+        default_settings["music_folders"] = self._normalize_music_folders(
+            folders if isinstance(folders, list) else []
+        )
+        if not default_settings["music_folders"]:
+            default_music = Path.home() / "Music"
+            if default_music.is_dir():
+                default_settings["music_folders"] = [str(default_music.resolve())]
         default_settings.setdefault("audio_buffer", 0.2)
         default_settings.pop("audio_backend", None)
         default_settings.pop("buffer_size", None)
         default_settings.pop("animated_backgrounds", None)
         self._settings = default_settings
+        self._save_settings()
+
+    @staticmethod
+    def _normalize_music_folders(folders):
+        normalized = []
+        seen = set()
+        for folder in folders:
+            if not isinstance(folder, str) or not folder.strip():
+                continue
+            path = Path(folder).expanduser()
+            try:
+                canonical = str(path.resolve())
+            except OSError:
+                canonical = str(path.absolute())
+            if canonical not in seen:
+                normalized.append(canonical)
+                seen.add(canonical)
+        return normalized
     
     def _save_settings(self):
         """Save settings to JSON file"""
@@ -297,6 +327,7 @@ class SettingsManager(QObject):
         return self._settings.get("music_folders", [])
     
     def set_music_folders(self, value):
+        value = self._normalize_music_folders(value if isinstance(value, list) else [])
         if self._settings.get("music_folders") != value:
             self._settings["music_folders"] = value
             self._save_settings()
@@ -446,13 +477,19 @@ class SettingsManager(QObject):
     @Slot(str)
     def addMusicFolder(self, folder_path):
         """Add a music folder to the library"""
-        folders = self._settings.get("music_folders", [])
-        if folder_path not in folders:
-            folders.append(folder_path)
+        path = Path(folder_path).expanduser()
+        if not path.is_dir():
+            return
+        folders = self._normalize_music_folders(self._settings.get("music_folders", []))
+        normalized = str(path.resolve())
+        if normalized not in folders:
+            folders.append(normalized)
             self._settings["music_folders"] = folders
             self._save_settings()
             self.musicFoldersChanged.emit()
             self.libraryStatsChanged.emit()
+            if self._library_busy:
+                self._scan_requested_after_current_task = True
     
     @Slot(str)
     def removeMusicFolder(self, folder_path):
@@ -487,6 +524,12 @@ class SettingsManager(QObject):
     def _start_library_task(self, operation):
         if self._library_busy:
             return
+        if operation in {"scan", "rescan", "rebuild"} and not any(
+            Path(folder).is_dir() for folder in self._settings.get("music_folders", [])
+        ):
+            self._library_operation_status = "Add a music folder to start automatic library scanning."
+            self.libraryOperationStatusChanged.emit()
+            return
         self._library_busy = True
         labels = {
             "scan": "Scanning your music folders…",
@@ -511,6 +554,9 @@ class SettingsManager(QObject):
         self.libraryStatsChanged.emit()
         titles = {"scan": "Library Scan", "rescan": "Library Refresh", "clean": "Library Cleanup", "rebuild": "Library Rebuild"}
         self.showNotification(titles[operation], status)
+        if self._scan_requested_after_current_task:
+            self._scan_requested_after_current_task = False
+            QTimer.singleShot(0, self.scanLibrary)
 
     def wait_for_background_operations(self):
         QThreadPool.globalInstance().waitForDone()
