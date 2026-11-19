@@ -105,6 +105,7 @@ class MusicManager(QObject):
                     "id": track.id,
                     "title": track.title or track.file_name,
                     "artist": track.artist.name if track.artist else "Unknown",
+                    "album_artist": track.album_artist or (track.artist.name if track.artist else "Unknown"),
                     "album": track.album.title if track.album else "Unknown",
                     "album_art": album_art,
                     # Send RAW numeric seconds to QML. The UI (MusicView + player) is
@@ -117,7 +118,16 @@ class MusicManager(QObject):
                     "play_count": track.play_count,
                     "bitrate": track.bitrate if track.bitrate else 0,
                     "lossless": self._is_lossless(track),
-                    "dateAdded": track.added_at.isoformat() if track.added_at else ""
+                    "dateAdded": track.added_at.isoformat() if track.added_at else "",
+                    "metadata": {
+                        "track_number": track.track_number, "disc_number": track.disc_number,
+                        "year": track.year, "genre": track.genre, "composer": track.composer,
+                        "performer": track.performer, "lyricist": track.lyricist,
+                        "comment": track.comment, "format": track.format, "bitrate": track.bitrate,
+                        "sample_rate": track.sample_rate, "channels": track.channels,
+                        "bit_depth": track.bit_depth, "track_gain": track.track_gain,
+                        "album_gain": track.album_gain,
+                    }
                 })
             self._song_count = len(self._songs)
             logger.info(f"Loaded {self._song_count} songs from database (filter: {self._current_filter})")
@@ -169,6 +179,7 @@ class MusicManager(QObject):
                     "id": track.id,
                     "title": track.title or track.file_name,
                     "artist": track.artist.name if track.artist else "Unknown",
+                    "album_artist": track.album_artist or (track.artist.name if track.artist else "Unknown"),
                     "album": track.album.title if track.album else "Unknown",
                     "album_art": album_art,
                     "duration": duration_seconds if duration_seconds is not None else 0,
@@ -177,7 +188,16 @@ class MusicManager(QObject):
                     "play_count": track.play_count,
                     "bitrate": track.bitrate if track.bitrate else 0,
                     "lossless": self._is_lossless(track),
-                    "dateAdded": track.added_at.isoformat() if track.added_at else ""
+                    "dateAdded": track.added_at.isoformat() if track.added_at else "",
+                    "metadata": {
+                        "track_number": track.track_number, "disc_number": track.disc_number,
+                        "year": track.year, "genre": track.genre, "composer": track.composer,
+                        "performer": track.performer, "lyricist": track.lyricist,
+                        "comment": track.comment, "format": track.format, "bitrate": track.bitrate,
+                        "sample_rate": track.sample_rate, "channels": track.channels,
+                        "bit_depth": track.bit_depth, "track_gain": track.track_gain,
+                        "album_gain": track.album_gain,
+                    }
                 })
 
             # Group songs by artist and album
@@ -195,46 +215,51 @@ class MusicManager(QObject):
         # Group by artist
         artists_dict = {}
         for track in self._library_tracks:
-            artist_name = track.get("artist", "Unknown")
-            if artist_name not in artists_dict:
-                artists_dict[artist_name] = {
+            artist_name = (track.get("album_artist") or track.get("artist") or "Unknown").strip()
+            artist_key = artist_name.casefold()
+            if artist_key not in artists_dict:
+                artists_dict[artist_key] = {
                     "type": "artist",
                     "name": artist_name,
                     "albums": {},
                     "track_count": 0,
                     "total_duration": 0
                 }
-            artists_dict[artist_name]["track_count"] += 1
-            artists_dict[artist_name]["total_duration"] += track.get("duration", 0)
+            artists_dict[artist_key]["track_count"] += 1
+            artists_dict[artist_key]["total_duration"] += track.get("duration", 0)
 
             # Group by album within artist
             album_name = track.get("album", "Unknown")
-            if album_name not in artists_dict[artist_name]["albums"]:
-                artists_dict[artist_name]["albums"][album_name] = {
+            album_key = album_name.strip().casefold()
+            if album_key not in artists_dict[artist_key]["albums"]:
+                artists_dict[artist_key]["albums"][album_key] = {
                     "name": album_name,
                     "tracks": [],
                     "track_count": 0,
                     "total_duration": 0,
                     "lossless": False
                 }
-            artists_dict[artist_name]["albums"][album_name]["tracks"].append(track)
-            artists_dict[artist_name]["albums"][album_name]["track_count"] += 1
-            artists_dict[artist_name]["albums"][album_name]["total_duration"] += track.get("duration", 0)
+            artists_dict[artist_key]["albums"][album_key]["tracks"].append(track)
+            artists_dict[artist_key]["albums"][album_key]["track_count"] += 1
+            artists_dict[artist_key]["albums"][album_key]["total_duration"] += track.get("duration", 0)
             if track.get("lossless"):
-                artists_dict[artist_name]["albums"][album_name]["lossless"] = True
+                artists_dict[artist_key]["albums"][album_key]["lossless"] = True
 
         # Convert to library groups
-        for artist_name, artist_data in artists_dict.items():
+        for artist_key, artist_data in artists_dict.items():
             # Collect all tracks from all albums for this artist
             all_artist_tracks = []
             for album_data in artist_data["albums"].values():
                 all_artist_tracks.extend(album_data["tracks"])
+            artist_name = next((item.get("album_artist") for item in all_artist_tracks if item.get("album_artist")), None)
+            artist_name = artist_name or next((item.get("artist") for item in all_artist_tracks if item.get("artist")), "Unknown")
 
             # Create artist card with all tracks
             artist_card = {
                 "type": "artist",
                 "name": artist_name,
                 "tracks": all_artist_tracks,
+                "album_art": next((t.get("album_art") for t in all_artist_tracks if t.get("album_art")), ""),
                 "track_count": artist_data["track_count"],
                 "total_duration": artist_data["total_duration"],
                 "album_count": len(artist_data["albums"])
@@ -243,11 +268,17 @@ class MusicManager(QObject):
 
             # Create album cards for this artist
             for album_name, album_data in artist_data["albums"].items():
+                album_data["tracks"].sort(key=lambda item: (
+                    item.get("metadata", {}).get("disc_number") or 1,
+                    item.get("metadata", {}).get("track_number") or 10**9,
+                    (item.get("title") or "").casefold(),
+                ))
                 album_card = {
                     "type": "album",
                     "artist": artist_name,
                     "name": album_name,
                     "tracks": album_data["tracks"],
+                    "album_art": next((t.get("album_art") for t in album_data["tracks"] if t.get("album_art")), ""),
                     "track_count": album_data["track_count"],
                     "total_duration": album_data["total_duration"],
                     "lossless": album_data["lossless"]

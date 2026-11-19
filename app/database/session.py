@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import create_engine
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -53,6 +54,17 @@ class DatabaseSession:
         
         # Create all tables
         Base.metadata.create_all(self._engine)
+
+        # Keep existing user libraries compatible with additive model fields.
+        # SQLite's create_all does not alter tables that already exist.
+        if inspect(self._engine).has_table("tracks"):
+            columns = {column["name"] for column in inspect(self._engine).get_columns("tracks")}
+            if "album_artist" not in columns or "metadata_version" not in columns:
+                with self._engine.begin() as connection:
+                    if "album_artist" not in columns:
+                        connection.execute(text("ALTER TABLE tracks ADD COLUMN album_artist VARCHAR(255)"))
+                    if "metadata_version" not in columns:
+                        connection.execute(text("ALTER TABLE tracks ADD COLUMN metadata_version INTEGER NOT NULL DEFAULT 0"))
         
         logger.info(f"Database initialized at {db_path}")
     

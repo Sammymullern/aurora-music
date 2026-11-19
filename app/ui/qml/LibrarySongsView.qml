@@ -9,6 +9,21 @@ Rectangle {
     property var songs: []
     property string title: ""
     property string subtitle: ""
+    property var selectedTrack: ({})
+    readonly property var metadataRows: {
+        if (!selectedTrack || !selectedTrack.metadata) return []
+        var fields = selectedTrack.metadata
+        var labels = {
+            track_number: "Track", disc_number: "Disc", year: "Year", genre: "Genre",
+            composer: "Composer", performer: "Performer", lyricist: "Lyricist",
+            comment: "Comment", format: "Format", bitrate: "Bitrate",
+            sample_rate: "Sample rate", channels: "Channels", bit_depth: "Bit depth",
+            track_gain: "Track gain", album_gain: "Album gain"
+        }
+        return Object.keys(labels).filter(function(key) {
+            return fields[key] !== null && fields[key] !== undefined && String(fields[key]).length > 0
+        }).map(function(key) { return { label: labels[key], value: String(fields[key]) + (key === "bitrate" ? " kbps" : key === "sample_rate" ? " Hz" : "") } })
+    }
 
     function formatDuration(seconds) {
         return libraryManager ? libraryManager.formatDuration(Number(seconds)) : "0:00"
@@ -103,6 +118,16 @@ Rectangle {
                     spacing: 15
 
                     // Track number
+                    Image {
+                        Layout.preferredWidth: 44
+                        Layout.preferredHeight: 44
+                        visible: !!modelData.album_art
+                        source: modelData.album_art || ""
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        cache: true
+                    }
+
                     Item {
                         Layout.preferredWidth: 40
                         Layout.preferredHeight: 22
@@ -152,6 +177,17 @@ Rectangle {
                         horizontalAlignment: Text.AlignRight
                     }
 
+                    Button {
+                        text: "i"
+                        Layout.preferredWidth: 34
+                        Layout.preferredHeight: 34
+                        onClicked: { root.selectedTrack = modelData; trackMetadataDialog.open() }
+                        contentItem: Text { text: parent.text; color: theme.textSecondary; font.pixelSize: 16; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                        background: Rectangle { color: theme.surface; radius: 17 }
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Song details"
+                    }
+
                     // Play button
                     Rectangle {
                         Layout.preferredWidth: 35
@@ -180,6 +216,7 @@ Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
+                    z: 0
                     cursorShape: Qt.PointingHandCursor
                     onDoubleClicked: {
                         if (musicManager) {
@@ -218,6 +255,41 @@ Rectangle {
                     color: theme.textPrimary
                     Layout.alignment: Qt.AlignHCenter
                 }
+            }
+        }
+    }
+
+    Dialog {
+        id: trackMetadataDialog
+        title: root.selectedTrack.title || "Song details"
+        modal: true
+        anchors.centerIn: parent
+        width: Math.min(root.width - 40, 480)
+        height: Math.min(root.height - 40, 560)
+        standardButtons: Dialog.Close
+        background: Rectangle { color: theme.surface; radius: 18; border.color: theme.border }
+
+        contentItem: ColumnLayout {
+            spacing: 12
+            Text {
+                Layout.fillWidth: true
+                text: (root.selectedTrack.artist || "Unknown artist") + " · " + (root.selectedTrack.album || "Unknown album")
+                color: theme.textSecondary
+                wrapMode: Text.Wrap
+            }
+            ListView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                spacing: 2
+                model: root.metadataRows
+                delegate: RowLayout {
+                    width: ListView.view.width
+                    height: Math.max(40, detailValue.implicitHeight + 12)
+                    Text { Layout.preferredWidth: 120; text: modelData.label; color: theme.textSecondary; font.pixelSize: 13 }
+                    Text { id: detailValue; Layout.fillWidth: true; text: modelData.value; color: theme.textPrimary; font.pixelSize: 13; wrapMode: Text.Wrap }
+                }
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
             }
         }
     }

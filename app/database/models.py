@@ -76,6 +76,8 @@ class Track(Base):
     
     # Metadata
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    album_artist: Mapped[Optional[str]] = mapped_column(String(255))
+    metadata_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     artist_id: Mapped[Optional[int]] = mapped_column(ForeignKey("artists.id"), nullable=True)
     album_id: Mapped[Optional[int]] = mapped_column(ForeignKey("albums.id"), nullable=True)
     track_number: Mapped[Optional[int]] = mapped_column(Integer)

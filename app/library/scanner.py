@@ -93,7 +93,7 @@ class LibraryScanner:
                 modified_at = file_path.stat().st_mtime
             except OSError:
                 return False
-            if modified_at > existing.scanned_at.timestamp():
+            if modified_at > existing.scanned_at.timestamp() or existing.metadata_version < 1:
                 return self._update_track(existing, file_path)
             return False
         
@@ -106,7 +106,8 @@ class LibraryScanner:
         artist = self._get_or_create_artist(metadata)
         
         # Create or get album
-        album = self._get_or_create_album(metadata, artist)
+        album_artist = self._get_or_create_artist({**metadata, "artist": metadata.get("album_artist") or metadata.get("artist")})
+        album = self._get_or_create_album(metadata, album_artist)
         
         # Create track
         track = Track(
@@ -115,6 +116,7 @@ class LibraryScanner:
             file_size=metadata["file_size"],
             format=metadata["format"],
             title=metadata["title"],
+            album_artist=metadata.get("album_artist") or metadata.get("artist"),
             artist=artist,
             album=album,
             track_number=metadata.get("track_number"),
@@ -134,6 +136,7 @@ class LibraryScanner:
             composer=metadata.get("composer"),
             performer=metadata.get("performer"),
             lyricist=metadata.get("lyricist"),
+            metadata_version=1,
         )
         
         self.session.add(track)
@@ -154,8 +157,12 @@ class LibraryScanner:
         
         # Update album
         if metadata.get("album"):
-            album = self._get_or_create_album(metadata, track.artist)
+            album_artist = self._get_or_create_artist({**metadata, "artist": metadata.get("album_artist") or metadata.get("artist")})
+            album = self._get_or_create_album(metadata, album_artist)
             track.album = album
+
+        track.album_artist = metadata.get("album_artist") or metadata.get("artist")
+        track.metadata_version = 1
         
         # Update track fields
         track.title = metadata["title"]
@@ -169,6 +176,10 @@ class LibraryScanner:
         track.channels = metadata.get("channels")
         track.bit_depth = metadata.get("bit_depth")
         track.file_size = metadata["file_size"]
+        if track.album and metadata.get("artwork_path"):
+            track.album.artwork_path = metadata["artwork_path"]
+        for field in ("comment", "composer", "performer", "lyricist", "track_gain", "track_peak", "album_gain", "album_peak"):
+            setattr(track, field, metadata.get(field))
         track.scanned_at = track.scanned_at  # Will be updated by onupdate
         
         return True
@@ -205,6 +216,9 @@ class LibraryScanner:
                 genre=metadata.get("genre")
             )
             self.session.add(album)
+
+        if metadata.get("artwork_path") and not album.artwork_path:
+            album.artwork_path = metadata["artwork_path"]
         
         return album
     

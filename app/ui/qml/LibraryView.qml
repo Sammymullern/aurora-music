@@ -283,10 +283,20 @@ Rectangle {
                                 GradientStop { position: 1.0; color: modelData.type === "artist" ? "#be185d" : theme.primary }
                             }
 
+                            Image {
+                                anchors.fill: parent
+                                source: modelData.album_art || ""
+                                visible: source.toString().length > 0
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                cache: true
+                            }
+
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.type === "artist" ? "🎤" : "💿"
                                 font.pixelSize: 26
+                                visible: !modelData.album_art
                             }
 
                             // Lossless indicator
@@ -403,6 +413,16 @@ Rectangle {
                     anchors.leftMargin: 16
                     anchors.rightMargin: 12
                     spacing: 12
+
+                    Image {
+                        Layout.preferredWidth: 42
+                        Layout.preferredHeight: 42
+                        visible: !!modelData.album_art
+                        source: modelData.album_art || ""
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        cache: true
+                    }
 
                     Item {
                         Layout.preferredWidth: 28

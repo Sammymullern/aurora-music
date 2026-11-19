@@ -4,6 +4,7 @@ Tests for metadata extraction
 
 import pytest
 from pathlib import Path
+from types import SimpleNamespace
 
 from app.metadata.extractor import MetadataExtractor
 
@@ -45,3 +46,22 @@ class TestMetadataExtractor:
         assert MetadataExtractor._parse_replaygain("3.2 dB") == 3.2
         assert MetadataExtractor._parse_replaygain("-7.5") == -7.5
         assert MetadataExtractor._parse_replaygain(None) is None
+
+    def test_embedded_artwork_is_cached_without_modifying_audio(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+        audio_file = SimpleNamespace(pictures=[SimpleNamespace(data=b"image-bytes", mime="image/png")])
+
+        result = MetadataExtractor._extract_artwork(audio_file, tmp_path / "song.flac")
+
+        assert result is not None
+        assert Path(result).suffix == ".png"
+        assert Path(result).read_bytes() == b"image-bytes"
+
+    def test_folder_cover_is_used_when_embedding_is_missing(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+        cover = tmp_path / "cover.jpg"
+        cover.write_bytes(b"folder-cover")
+
+        result = MetadataExtractor._extract_artwork(SimpleNamespace(), tmp_path / "song.mp3")
+
+        assert result == str(cover)

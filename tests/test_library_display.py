@@ -38,6 +38,8 @@ def test_music_sort_options_update_song_order(tmp_path):
 
         manager = MusicManager()
         assert [song["title"] for song in manager.songs] == ["Alpha", "Bravo", "Charlie"]
+        assert manager.songs[0]["album_artist"] == "Unknown"
+        assert "sample_rate" in manager.songs[0]["metadata"]
         manager.setSortOrder("Z-A")
         assert [song["title"] for song in manager.songs] == ["Charlie", "Bravo", "Alpha"]
         manager.setSortOrder("Most Played")

@@ -3,6 +3,9 @@ Audio metadata extraction using Mutagen
 """
 
 import logging
+import hashlib
+import mimetypes
+import os
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -152,6 +155,7 @@ class MetadataExtractor:
                 metadata["artist"] = cls._get_tag(tag_provider, "artist")
                 metadata["album"] = cls._get_tag(tag_provider, "album")
                 metadata["albumartist"] = cls._get_tag(tag_provider, "albumartist")
+                metadata["album_artist"] = metadata["albumartist"] or cls._get_tag(tag_provider, "album artist")
                 metadata["track_number"] = cls._parse_track_number(cls._get_tag(tag_provider, "tracknumber"))
                 metadata["disc_number"] = cls._parse_disc_number(cls._get_tag(tag_provider, "discnumber"))
                 metadata["year"] = cls._parse_year(cls._get_tag(tag_provider, "date") or cls._get_tag(tag_provider, "year"))
@@ -169,6 +173,8 @@ class MetadataExtractor:
             except Exception as e:
                 logger.warning(f"Could not extract tags from {file_path.name}, using basic info: {e}")
 
+            metadata["artwork_path"] = cls._extract_artwork(raw_audio, file_path)
+
             # Attach audio properties (may be None for broken containers, that's fine)
             metadata["duration"] = duration
             metadata["bitrate"] = bitrate
@@ -185,6 +191,52 @@ class MetadataExtractor:
         except Exception as e:
             logger.error(f"Error extracting metadata from {file_path}: {e}")
             return None
+
+    @staticmethod
+    def _extract_artwork(audio_file, file_path: Path) -> Optional[str]:
+        """Persist embedded cover art (or nearby folder art) and return its stable path."""
+        image_data = None
+        mime_type = None
+        try:
+            if isinstance(audio_file, MP3):
+                picture = next((frame for frame in audio_file.tags.getall("APIC") if frame.data), None)
+                if picture:
+                    image_data, mime_type = picture.data, picture.mime
+            elif isinstance(audio_file, MP4):
+                covers = audio_file.tags.get("covr", []) if audio_file.tags else []
+                if covers:
+                    image_data = bytes(covers[0])
+                    mime_type = getattr(covers[0], "imageformat", None)
+                    mime_type = "image/png" if str(mime_type).lower().endswith("png") else "image/jpeg"
+            elif isinstance(audio_file, FLAC) and audio_file.pictures:
+                image_data = audio_file.pictures[0].data
+                mime_type = audio_file.pictures[0].mime
+            else:
+                pictures = getattr(audio_file, "pictures", [])
+                if pictures:
+                    image_data = pictures[0].data
+                    mime_type = getattr(pictures[0], "mime", None)
+        except Exception as exc:
+            logger.debug("Could not read embedded artwork from %s: %s", file_path.name, exc)
+
+        if image_data:
+            digest = hashlib.sha256(image_data).hexdigest()
+            cache_root = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "aurora-music" / "artwork"
+            extension = mimetypes.guess_extension(mime_type or "") or ".jpg"
+            try:
+                cache_root.mkdir(parents=True, exist_ok=True)
+                artwork = cache_root / f"{digest}{extension}"
+                if not artwork.exists():
+                    artwork.write_bytes(image_data)
+                return str(artwork)
+            except OSError as exc:
+                logger.warning("Could not cache artwork for %s: %s", file_path.name, exc)
+
+        for filename in ("cover.jpg", "cover.jpeg", "cover.png", "folder.jpg", "folder.png", "front.jpg"):
+            candidate = file_path.parent / filename
+            if candidate.is_file():
+                return str(candidate)
+        return None
     
     @staticmethod
     def _get_tag(audio_file, tag_name: str) -> Optional[str]:
