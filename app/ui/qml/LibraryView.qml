@@ -9,10 +9,15 @@ Rectangle {
     property int trackCount: libraryManager ? libraryManager.trackCount : 0
     property int albumCount: libraryManager ? libraryManager.albumCount : 0
     property int artistCount: libraryManager ? libraryManager.artistCount : 0
-    property string totalDuration: libraryManager ? libraryManager.totalDuration : "0:00:00"
+    property string totalDuration: libraryManager ? libraryManager.totalDuration : "0 min"
     property var libraryTracks: libraryManager ? libraryManager.libraryTracks : []
     property var libraryGroups: libraryManager ? libraryManager.libraryGroups : []
     property var uncategorizedTracks: libraryManager ? libraryManager.uncategorizedTracks : []
+    readonly property var visibleGroups: {
+        if (!libraryTabBar || libraryTabBar.currentIndex === 2) return []
+        var groupType = libraryTabBar.currentIndex === 0 ? "artist" : "album"
+        return libraryGroups.filter(function(group) { return group.type === groupType })
+    }
 
     Component.onCompleted: {
         if (libraryManager) {
@@ -29,19 +34,21 @@ Rectangle {
                 libraryTracks = libraryManager.libraryTracks
                 libraryGroups = libraryManager.libraryGroups
                 uncategorizedTracks = libraryManager.uncategorizedTracks
-                libraryGroupsList.model = libraryGroups
             }
         }
     }
 
     function formatDuration(seconds) {
-        var hours = Math.floor(seconds / 3600)
-        var minutes = Math.floor((seconds % 3600) / 60)
-        var secs = seconds % 60
-        if (hours > 0) {
-            return hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + (secs < 10 ? "0" : "") + secs
-        }
-        return minutes + ":" + (secs < 10 ? "0" : "") + secs
+        return libraryManager ? libraryManager.formatDuration(Number(seconds)) : "0:00"
+    }
+
+    function openGroup(group) {
+        librarySongsView.songs = group.tracks || []
+        librarySongsView.title = group.name || "Unknown"
+        librarySongsView.subtitle = group.type === "artist"
+            ? group.album_count + " albums"
+            : (group.artist || "Unknown artist")
+        contentStack.currentIndex = 5
     }
 
     ColumnLayout {
@@ -145,6 +152,31 @@ Rectangle {
             font.pixelSize: 12
         }
 
+        TabBar {
+            id: libraryTabBar
+            Layout.fillWidth: true
+            Layout.preferredHeight: 42
+            currentIndex: 0
+            visible: trackCount > 0
+            background: Rectangle { color: "transparent" }
+
+            TabButton {
+                text: "Artists  " + root.artistCount
+                contentItem: Text { text: parent.text; color: parent.checked ? "#ffffff" : theme.textSecondary; font.pixelSize: 13; font.weight: parent.checked ? Font.DemiBold : Font.Medium; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                background: Rectangle { color: parent.checked ? theme.primary : theme.surface; radius: 10; border.color: parent.checked ? theme.primary : theme.border }
+            }
+            TabButton {
+                text: "Albums  " + root.albumCount
+                contentItem: Text { text: parent.text; color: parent.checked ? "#ffffff" : theme.textSecondary; font.pixelSize: 13; font.weight: parent.checked ? Font.DemiBold : Font.Medium; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                background: Rectangle { color: parent.checked ? theme.primary : theme.surface; radius: 10; border.color: parent.checked ? theme.primary : theme.border }
+            }
+            TabButton {
+                text: "Songs  " + root.trackCount
+                contentItem: Text { text: parent.text; color: parent.checked ? "#ffffff" : theme.textSecondary; font.pixelSize: 13; font.weight: parent.checked ? Font.DemiBold : Font.Medium; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                background: Rectangle { color: parent.checked ? theme.primary : theme.surface; radius: 10; border.color: parent.checked ? theme.primary : theme.border }
+            }
+        }
+
         // Empty state
         Rectangle {
             Layout.fillWidth: true
@@ -215,44 +247,37 @@ Rectangle {
             id: libraryGroupsList
             Layout.fillWidth: true
             Layout.fillHeight: true
-            visible: trackCount > 0
-            model: libraryGroups
-            spacing: 30
+            visible: trackCount > 0 && libraryTabBar.currentIndex < 2
+            model: root.visibleGroups
+            spacing: 10
             clip: true
 
             delegate: Rectangle {
                 id: card
                 width: ListView.view.width
-                height: 100
+                height: 86
                 color: theme.surface
                 radius: 12
-
-                // 3D shadow effect
-                Rectangle {
-                    anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
-                    width: 4
-                    radius: 12
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#3d2a5c" }
-                        GradientStop { position: 1.0; color: "#1a1030" }
-                    }
-                }
+                border.color: theme.border
+                border.width: 1
 
                 ColumnLayout {
+                    z: 1
                     anchors.fill: parent
-                    anchors.margins: 15
-                    spacing: 10
+                    anchors.margins: 12
+                    spacing: 0
 
                     // Card header (always visible)
                     RowLayout {
+                        z: 1
                         Layout.fillWidth: true
                         spacing: 15
 
                         // Icon/Art
                         Rectangle {
-                            Layout.preferredWidth: 60
-                            Layout.preferredHeight: 60
-                            radius: 8
+                            Layout.preferredWidth: 56
+                            Layout.preferredHeight: 56
+                            radius: 12
                             gradient: Gradient {
                                 GradientStop { position: 0.0; color: modelData.type === "artist" ? "#ec4899" : theme.primaryLight }
                                 GradientStop { position: 1.0; color: modelData.type === "artist" ? "#be185d" : theme.primary }
@@ -261,7 +286,7 @@ Rectangle {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.type === "artist" ? "🎤" : "💿"
-                                font.pixelSize: 30
+                                font.pixelSize: 26
                             }
 
                             // Lossless indicator
@@ -316,10 +341,11 @@ Rectangle {
 
                         // Open button
                         Rectangle {
-                            Layout.preferredWidth: 35
-                            Layout.preferredHeight: 35
-                            radius: 17
+                            Layout.preferredWidth: 42
+                            Layout.preferredHeight: 42
+                            radius: 21
                             color: theme.primary
+                            z: 2
 
                             Text {
                                 anchors.centerIn: parent
@@ -332,13 +358,7 @@ Rectangle {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    // Navigate to songs view
-                                    librarySongsView.songs = modelData.tracks || []
-                                    librarySongsView.title = modelData.name
-                                    librarySongsView.subtitle = modelData.type === "artist" ?
-                                        (modelData.album_count + " Albums") :
-                                        modelData.artist
-                                    contentStack.currentIndex = 5  // LibrarySongsView index
+                                    root.openGroup(modelData)
                                 }
                             }
                         }
@@ -347,22 +367,78 @@ Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
+                    z: 0
                     cursorShape: Qt.PointingHandCursor
-                    onDoubleClicked: {
-                        // Navigate to songs view
-                        librarySongsView.songs = modelData.tracks || []
-                        librarySongsView.title = modelData.name
-                        librarySongsView.subtitle = modelData.type === "artist" ?
-                            (modelData.album_count + " Albums") :
-                            modelData.artist
-                        contentStack.currentIndex = 5  // LibrarySongsView index
-                    }
+                    onClicked: root.openGroup(modelData)
                 }
             }
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
             }
+        }
+
+        ListView {
+            id: libraryTrackList
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: trackCount > 0 && libraryTabBar.currentIndex === 2
+            model: libraryTracks
+            spacing: 8
+            clip: true
+
+            delegate: Rectangle {
+                id: songRow
+                width: ListView.view.width
+                height: 68
+                radius: 12
+                color: songRow.isCurrent ? theme.surfaceVariant : theme.surface
+                border.color: songRow.isCurrent ? theme.primary : theme.border
+                border.width: songRow.isCurrent ? 1 : 0
+                readonly property bool isCurrent: player && String(modelData.id) === String(player.currentTrackId)
+
+                RowLayout {
+                    z: 1
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 12
+                    spacing: 12
+
+                    Item {
+                        Layout.preferredWidth: 28
+                        Layout.preferredHeight: 22
+                        PlayingIndicator { anchors.centerIn: parent; active: songRow.isCurrent; playing: active && player.isPlaying }
+                        Text { anchors.centerIn: parent; visible: !songRow.isCurrent; text: index + 1; color: theme.textSecondary; font.pixelSize: 12 }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 3
+                        Text { text: modelData.title || "Unknown track"; color: theme.textPrimary; font.pixelSize: 14; font.weight: Font.DemiBold; Layout.fillWidth: true; elide: Text.ElideRight }
+                        Text { text: (modelData.artist || "Unknown artist") + "  ·  " + (modelData.album || "Unknown album"); color: theme.textSecondary; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
+                    }
+
+                    Text { text: formatDuration(modelData.duration); color: theme.textSecondary; font.pixelSize: 12; Layout.preferredWidth: 72; horizontalAlignment: Text.AlignRight }
+
+                    Button {
+                        z: 2
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        text: modelData.favorite ? "♥" : "♡"
+                        contentItem: Text { text: parent.text; color: modelData.favorite ? "#ef4444" : theme.textSecondary; font.pixelSize: 19; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                        background: Rectangle { color: parent.hovered ? theme.surfaceVariant : "transparent"; radius: 19 }
+                        onClicked: if (libraryManager) libraryManager.toggleFavorite(String(modelData.id))
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    z: 0
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: if (libraryManager) libraryManager.playSong(String(modelData.id))
+                }
+            }
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
         }
     }
 

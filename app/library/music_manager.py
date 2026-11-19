@@ -3,6 +3,7 @@ Music Manager for Aurora Music
 Handles music library queries and operations
 """
 import logging
+import math
 from datetime import UTC, datetime
 from typing import List, Dict, Any, Optional
 from PySide6.QtCore import QObject, Signal, Property, Slot
@@ -27,6 +28,7 @@ class MusicManager(QObject):
         self._songs = []
         self._song_count = 0
         self._current_filter = "all"  # all, favorites, recently_added, high_rating
+        self._sort_order = "A-Z"
         self._search_query = ""  # Search query string
         self._player = player  # Player instance for playback
         self._library_tracks = []
@@ -62,23 +64,29 @@ class MusicManager(QObject):
             # Apply filter
             if self._current_filter == "favorites":
                 query = query.filter(Track.favorite == True)
-                query = query.order_by(Track.title)
                 logger.info("Applied favorites filter")
             elif self._current_filter == "recently_added":
                 # Songs added in the last 30 days
                 from datetime import timedelta
                 thirty_days_ago = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=30)
                 query = query.filter(Track.added_at >= thirty_days_ago)
-                query = query.order_by(Track.added_at.desc())
                 logger.info(f"Applied recently_added filter (since {thirty_days_ago})")
             elif self._current_filter == "high_rating":
                 # Most played, max 15
-                query = query.order_by(Track.play_count.desc()).limit(15)
                 logger.info("Applied high_rating filter (top 15)")
+
+            if self._current_filter == "high_rating":
+                query = query.order_by(Track.play_count.desc(), Track.title.asc()).limit(15)
+            elif self._current_filter == "recently_added" and self._sort_order == "A-Z":
+                query = query.order_by(Track.added_at.desc(), Track.title.asc())
+            elif self._sort_order == "Z-A":
+                query = query.order_by(Track.title.desc())
+            elif self._sort_order == "Recently Added":
+                query = query.order_by(Track.added_at.desc(), Track.title.asc())
+            elif self._sort_order == "Most Played":
+                query = query.order_by(Track.play_count.desc(), Track.title.asc())
             else:
-                # All songs, default order
-                query = query.order_by(Track.title)
-                logger.info("Applied all filter (no restriction)")
+                query = query.order_by(Track.title.asc())
             
             tracks = query.all()
             logger.info(f"Query returned {len(tracks)} tracks")
@@ -143,7 +151,7 @@ class MusicManager(QObject):
             self._artist_count = session.query(Artist).count()
 
             # Calculate total duration
-            tracks = session.query(Track).all()
+            tracks = session.query(Track).order_by(Track.title.asc()).all()
             self._total_duration = sum(track.duration or 0 for track in tracks)
 
             # Load all tracks for library view
@@ -251,16 +259,50 @@ class MusicManager(QObject):
             if track.get("artist") == "Unknown" and track.get("album") == "Unknown":
                 self._uncategorized_tracks.append(track)
 
+        self._library_groups.sort(
+            key=lambda group: (
+                0 if group["type"] == "artist" else 1,
+                (group.get("name") or "").casefold(),
+                (group.get("artist") or "").casefold(),
+            )
+        )
+
         logger.info(f"Grouped library: {len(self._library_groups)} groups, {len(self._uncategorized_tracks)} uncategorized")
 
     @staticmethod
     def _format_duration(seconds: Optional[float]) -> str:
-        """Format duration in seconds to MM:SS"""
-        if seconds is None:
+        """Format aggregate library duration as a readable hours/minutes summary."""
+        try:
+            value = float(seconds or 0)
+        except (TypeError, ValueError):
+            value = 0
+        if not math.isfinite(value) or value <= 0:
+            return "0 min"
+        if value < 60:
+            return f"{int(value)} sec"
+        total_minutes = int(value // 60)
+        hours, minutes = divmod(total_minutes, 60)
+        return f"{hours}h {minutes}m" if hours else f"{minutes} min"
+
+    @staticmethod
+    def format_track_duration(seconds: Optional[float]) -> str:
+        """Format track/group durations without fractional seconds."""
+        try:
+            value = float(seconds or 0)
+        except (TypeError, ValueError):
             return "0:00"
-        minutes = int(seconds // 60)
-        secs = int(seconds % 60)
+        if not math.isfinite(value) or value <= 0:
+            return "0:00"
+        total_seconds = int(value)
+        minutes, secs = divmod(total_seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        if hours:
+            return f"{hours}:{minutes:02d}:{secs:02d}"
         return f"{minutes}:{secs:02d}"
+
+    @Slot(float, result=str)
+    def formatDuration(self, seconds: float) -> str:
+        return self.format_track_duration(seconds)
     
     def get_songs(self) -> List[Dict[str, Any]]:
         """Get all songs"""
@@ -299,6 +341,7 @@ class MusicManager(QObject):
         return self._format_duration(self._total_duration)
 
     songs = Property('QVariantList', get_songs, notify=songsChanged)
+    sortOrder = Property(str, lambda self: self._sort_order, notify=songsChanged)
     songCount = Property(int, get_song_count, notify=songCountChanged)
     libraryTracks = Property('QVariantList', get_library_tracks, notify=libraryStatsChanged)
     libraryGroups = Property('QVariantList', get_library_groups, notify=libraryStatsChanged)
@@ -321,6 +364,17 @@ class MusicManager(QObject):
             self.songCountChanged.emit()
         else:
             logger.warning(f"Invalid filter name: {filter_name}")
+
+    @Slot(str)
+    def setSortOrder(self, sort_order: str):
+        if sort_order not in {"A-Z", "Z-A", "Recently Added", "Most Played"}:
+            return
+        if sort_order == self._sort_order:
+            return
+        self._sort_order = sort_order
+        self._load_songs()
+        self.songsChanged.emit()
+        self.songCountChanged.emit()
     
     @Slot(str)
     def setSearchQuery(self, query: str):
@@ -372,6 +426,8 @@ class MusicManager(QObject):
                         self._player.set_currentTrackFavorite(new_val)
                 except Exception as pe:
                     logger.debug(f"Could not sync player favorite state: {pe}")
+            self._load_library_stats()
+            self.libraryStatsChanged.emit()
             self.favoriteToggled.emit(str(song_id), new_val)
             return True
         except Exception:

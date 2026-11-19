@@ -11,13 +11,7 @@ Rectangle {
     property string subtitle: ""
 
     function formatDuration(seconds) {
-        var hours = Math.floor(seconds / 3600)
-        var minutes = Math.floor((seconds % 3600) / 60)
-        var secs = seconds % 60
-        if (hours > 0) {
-            return hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + (secs < 10 ? "0" : "") + secs
-        }
-        return minutes + ":" + (secs < 10 ? "0" : "") + secs
+        return libraryManager ? libraryManager.formatDuration(Number(seconds)) : "0:00"
     }
 
     ColumnLayout {
@@ -48,7 +42,7 @@ Rectangle {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        contentStack.currentIndex = 2  // Go back to Library
+                        contentStack.currentIndex = 1
                     }
                 }
             }

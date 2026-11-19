@@ -8,15 +8,7 @@ Rectangle {
     color: theme.background
 
     function formatDuration(seconds) {
-        if (seconds === null || seconds === undefined) return "0:00"
-        var sec = Number(seconds)
-        if (isNaN(sec) || sec < 0) return "0:00"
-        var h = Math.floor(sec / 3600)
-        var m = Math.floor((sec % 3600) / 60)
-        var s = Math.floor(sec % 60)
-        function pad(n) { return n < 10 ? "0" + n : "" + n }
-        if (h > 0) return h + ":" + pad(m) + ":" + pad(s)
-        return m + ":" + pad(s)
+        return musicManager ? musicManager.formatDuration(Number(seconds)) : "0:00"
     }
 
     ColumnLayout {
@@ -78,11 +70,13 @@ Rectangle {
             }
 
             ComboBox {
+                id: sortCombo
                 Layout.preferredWidth: 130
                 Layout.preferredHeight: 38
                 model: ["A-Z", "Z-A", "Recently Added", "Most Played"]
-                currentIndex: 0
+                currentIndex: musicManager ? model.indexOf(musicManager.sortOrder) : 0
                 font.pixelSize: 13
+                onActivated: if (musicManager) musicManager.setSortOrder(currentText)
 
                 background: Rectangle {
                     color: theme.surface
@@ -119,26 +113,6 @@ Rectangle {
                 }
             }
 
-            Row {
-                spacing: 8
-                Rectangle {
-                    width: 36; height: 36; radius: 8
-                    color: theme.primary
-                    Text {
-                        anchors.centerIn: parent
-                        text: "▢"; font.pixelSize: 15; color: "white"
-                    }
-                }
-                Rectangle {
-                    width: 36; height: 36; radius: 8
-                    color: theme.surface
-                    border.color: theme.border; border.width: 1
-                    Text {
-                        anchors.centerIn: parent
-                        text: "☰"; font.pixelSize: 15; color: theme.textSecondary
-                    }
-                }
-            }
         }
 
         // ===== FILTER CHIPS — unified size, icons, hover + active aurora glow =====
