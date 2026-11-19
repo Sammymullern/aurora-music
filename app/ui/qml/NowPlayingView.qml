@@ -40,34 +40,7 @@ Rectangle {
         asynchronous: true
         cache: true
         visible: root.currentAlbumArt !== "" && root.hasTrack
-        opacity: 0.18
-
-        layer.enabled: true
-        layer.effect: ShaderEffect {
-            property variant source: bgImage
-            property real radius: 64
-            property real step: 1.0 / 128.0
-            fragmentShader: "
-                varying highp vec2 qt_TexCoord0;
-                uniform sampler2D source;
-                uniform lowp float qt_Opacity;
-                uniform highp float radius;
-                uniform highp float step;
-                void main() {
-                    lowp vec4 sum = vec4(0.0);
-                    highp vec2 tc = qt_TexCoord0;
-                    highp float blur = radius * step;
-                    for (int x = -4; x <= 4; x++) {
-                        for (int y = -4; y <= 4; y++) {
-                            highp vec2 off = vec2(float(x), float(y)) * blur;
-                            sum += texture2D(source, tc + off);
-                        }
-                    }
-                    sum /= 81.0;
-                    gl_FragColor = sum * qt_Opacity;
-                }
-            "
-        }
+        opacity: 0.12
     }
 
     Rectangle {

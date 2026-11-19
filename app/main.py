@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# Set locale to C BEFORE any imports to prevent numpy/scipy/librosa crashes
+# Keep numeric parsing stable while providing Qt the UTF-8 locale it requires.
 import locale
 import os
-os.environ['LC_ALL'] = 'C'
-os.environ['LC_NUMERIC'] = 'C'
+os.environ["LC_ALL"] = "C.UTF-8"
+os.environ["LC_NUMERIC"] = "C"
 try:
-    locale.setlocale(locale.LC_ALL, 'C')
-    locale.setlocale(locale.LC_NUMERIC, 'C')
+    locale.setlocale(locale.LC_ALL, "C.UTF-8")
+    locale.setlocale(locale.LC_NUMERIC, "C")
 except locale.Error:
     pass
 

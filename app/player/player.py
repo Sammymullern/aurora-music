@@ -50,6 +50,8 @@ class Player(QObject):
         self._audio_devices = [{"name": "auto", "description": "System default"}]
         self._audio_device = "auto"
         self._audio_buffer = 0.2
+        self._pending_audio_device = "auto"
+        self._pending_audio_buffer = 0.2
 
         self._advancing: bool = False
         self._eof_watchdog_counter: int = 0
@@ -130,6 +132,10 @@ class Player(QObject):
                         )
                 except Exception as e:
                     logger.error(f"Error in end-file handler: {e}", exc_info=True)
+
+            @self._mpv.event_callback("file-loaded")
+            def _on_file_loaded(_event):
+                self._apply_pending_audio_settings()
 
             self._is_initialized = True
             self.refreshAudioDevices()
@@ -756,32 +762,40 @@ class Player(QObject):
         self._audio_devices = devices
         self.audioDevicesChanged.emit()
 
+    def _apply_pending_audio_settings(self) -> None:
+        """Apply settings when mpv has initialized its audio output properties."""
+        if not self._is_initialized or not self._mpv:
+            return
+        try:
+            self._mpv.set_property("audio-device", self._pending_audio_device)
+            self._audio_device = self._pending_audio_device
+            self.audioDeviceChanged.emit(self._audio_device)
+        except Exception as exc:
+            logger.debug("MPV audio device will remain pending until an output is available: %s", exc)
+        try:
+            self._mpv.set_property("audio-buffer", self._pending_audio_buffer)
+            self._audio_buffer = self._pending_audio_buffer
+            self.audioBufferChanged.emit(self._audio_buffer)
+        except Exception as exc:
+            logger.debug("MPV audio buffer will remain pending until an output is available: %s", exc)
+        self.refreshAudioDevices()
+
     @Slot(str, result=bool)
     def setAudioDevice(self, name: str) -> bool:
         if not self._is_initialized or not name:
             return False
-        try:
-            self._mpv.set_property("audio-device", name)
-            self._audio_device = name
-            self.audioDeviceChanged.emit(name)
-            return True
-        except Exception as exc:
-            logger.warning("Could not set audio device %s: %s", name, exc)
-            return False
+        self._pending_audio_device = name
+        self._apply_pending_audio_settings()
+        return True
 
     @Slot(float, result=bool)
     def setAudioBuffer(self, seconds: float) -> bool:
         seconds = max(0.05, min(2.0, float(seconds)))
         if not self._is_initialized:
             return False
-        try:
-            self._mpv.set_property("audio-buffer", seconds)
-            self._audio_buffer = seconds
-            self.audioBufferChanged.emit(seconds)
-            return True
-        except Exception as exc:
-            logger.warning("Could not set MPV audio buffer: %s", exc)
-            return False
+        self._pending_audio_buffer = seconds
+        self._apply_pending_audio_settings()
+        return True
 
     @staticmethod
     def _normalize_playlist_item(item: Any) -> Dict[str, Any]:
