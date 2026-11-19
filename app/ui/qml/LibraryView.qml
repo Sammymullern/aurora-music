@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "./components"
 
 Rectangle {
     id: root
@@ -117,6 +118,33 @@ Rectangle {
             color: theme.surfaceVariant
         }
 
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            ActionButton {
+                text: "Add Folder"
+                primaryAction: true
+                enabled: settings && !settings.libraryBusy
+                onClicked: {
+                    var folder = settings ? settings.browseMusicFolder() : ""
+                    if (folder && settings) settings.scanLibrary()
+                }
+            }
+            ActionButton { text: "Scan Library"; enabled: settings && !settings.libraryBusy; onClicked: if (settings) settings.scanLibrary() }
+            ActionButton { text: "Clean Missing"; enabled: settings && !settings.libraryBusy; onClicked: cleanMissingConfirmation.open() }
+            ActionButton { text: "Rebuild Index"; enabled: settings && !settings.libraryBusy; onClicked: rebuildConfirmation.open() }
+            Item { Layout.fillWidth: true }
+        }
+
+        Text {
+            Layout.fillWidth: true
+            visible: settings && settings.libraryOperationStatus.length > 0
+            text: settings ? settings.libraryOperationStatus : ""
+            color: theme.textSecondary
+            font.pixelSize: 12
+        }
+
         // Empty state
         Rectangle {
             Layout.fillWidth: true
@@ -146,7 +174,7 @@ Rectangle {
                 
                 // Subtitle
                 Text {
-                    text: "Add your music folders in Settings to get started"
+                    text: "Add a music folder to start building your library"
                     font.pixelSize: 14
                     color: theme.textSecondary
                     Layout.alignment: Qt.AlignHCenter
@@ -155,6 +183,7 @@ Rectangle {
                 // Add music button
                 Button {
                     text: "Add Music"
+                    enabled: settings && !settings.libraryBusy
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: 150
                     Layout.preferredHeight: 40
@@ -174,8 +203,8 @@ Rectangle {
                     }
                     
                     onClicked: {
-                        // Navigate to settings
-                        contentStack.currentIndex = 4
+                        var folder = settings ? settings.browseMusicFolder() : ""
+                        if (folder && settings) settings.scanLibrary()
                     }
                 }
             }
@@ -335,5 +364,33 @@ Rectangle {
                 policy: ScrollBar.AsNeeded
             }
         }
+    }
+
+    Dialog {
+        id: cleanMissingConfirmation
+        title: "Remove missing tracks?"
+        modal: true
+        anchors.centerIn: parent
+        standardButtons: Dialog.Cancel | Dialog.Ok
+        Label {
+            text: "Tracks whose files are no longer available will be removed from your library and playlists."
+            wrapMode: Text.WordWrap
+            color: theme.textPrimary
+        }
+        onAccepted: if (settings) settings.cleanMissingSongs()
+    }
+
+    Dialog {
+        id: rebuildConfirmation
+        title: "Rebuild library index?"
+        modal: true
+        anchors.centerIn: parent
+        standardButtons: Dialog.Cancel | Dialog.Ok
+        Label {
+            text: "This clears the current index and scans your configured music folders again."
+            wrapMode: Text.WordWrap
+            color: theme.textPrimary
+        }
+        onAccepted: if (settings) settings.rebuildDatabase()
     }
 }

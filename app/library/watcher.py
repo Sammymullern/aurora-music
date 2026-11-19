@@ -10,7 +10,9 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 from app.database.session import db
+from app.database.models import Track
 from app.library.scanner import LibraryScanner
+from app.metadata.extractor import MetadataExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +20,8 @@ logger = logging.getLogger(__name__)
 class LibraryEventHandler(FileSystemEventHandler):
     """File system event handler for library changes"""
     
-    def __init__(self, scanner: LibraryScanner, callback: Optional[Callable] = None):
+    def __init__(self, callback: Optional[Callable] = None):
         super().__init__()
-        self.scanner = scanner
         self.callback = callback
         self._pending_files: Set[Path] = set()
     
@@ -148,10 +149,8 @@ class LibraryWatcher:
             logger.warning(f"Directory already watched: {directory}")
             return True
         
-        session = db.get_session()
         try:
-            scanner = LibraryScanner(session)
-            handler = LibraryEventHandler(scanner, callback)
+            handler = LibraryEventHandler(callback)
             
             self.observer.schedule(handler, str(directory), recursive=True)
             self.handlers[str(directory)] = handler
@@ -161,8 +160,6 @@ class LibraryWatcher:
         except Exception as e:
             logger.error(f"Failed to watch directory: {e}")
             return False
-        finally:
-            session.close()
     
     def remove_directory(self, directory: str | Path) -> bool:
         """Remove directory from watch"""
@@ -172,9 +169,11 @@ class LibraryWatcher:
             logger.warning(f"Directory not watched: {directory}")
             return False
         
-        # In a real implementation, we'd need to unschedule the handler
-        # For now, just remove from our tracking
-        del self.handlers[directory]
+        handler = self.handlers.pop(directory)
+        try:
+            self.observer.unschedule(handler)
+        except KeyError:
+            logger.debug("Watch was already unscheduled: %s", directory)
         logger.info(f"Stopped watching: {directory}")
         return True
     

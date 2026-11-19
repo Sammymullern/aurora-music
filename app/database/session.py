@@ -36,12 +36,13 @@ class DatabaseSession:
         
         # Create engine with SQLite
         connection_string = f"sqlite:///{db_path}"
-        self._engine = create_engine(
-            connection_string,
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
-            echo=False
-        )
+        engine_options = {
+            "connect_args": {"check_same_thread": False, "timeout": 30},
+            "echo": False,
+        }
+        if str(db_path) == ":memory:":
+            engine_options["poolclass"] = StaticPool
+        self._engine = create_engine(connection_string, **engine_options)
         
         # Create session factory
         self._session_factory = sessionmaker(

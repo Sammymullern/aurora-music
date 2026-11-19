@@ -2,8 +2,8 @@
 Settings Manager for Aurora Music
 Handles application settings persistence and logic
 """
-import os
 import json
+import sys
 import urllib.request
 import urllib.error
 import re
@@ -53,6 +53,74 @@ class _UpdateCheck(QRunnable):
         return tuple(map(int, match.groups())) if match else (0, 0, 0)
 
 
+class _LibraryTaskSignals(QObject):
+    finished = Signal(str, str)
+
+
+class _LibraryTask(QRunnable):
+    def __init__(self, operation, folders):
+        super().__init__()
+        self.operation = operation
+        self.folders = list(folders)
+        self.signals = _LibraryTaskSignals()
+
+    def _scan(self):
+        session = db.get_session()
+        try:
+            scanner = LibraryScanner(session)
+            return sum(
+                scanner.scan_directory(folder)
+                for folder in self.folders
+                if Path(folder).is_dir()
+            )
+        finally:
+            session.close()
+
+    def run(self):
+        try:
+            if self.operation in {"scan", "rescan"}:
+                count = self._scan()
+                text = f"Scan complete. Added {count} tracks."
+            elif self.operation == "clean":
+                from app.database.models import Track, PlaylistTrack
+                session = db.get_session()
+                try:
+                    rows = session.query(Track.id, Track.file_path).all()
+                    missing_ids = [track_id for track_id, path in rows if not Path(path).is_file()]
+                    if missing_ids:
+                        session.query(PlaylistTrack).filter(
+                            PlaylistTrack.track_id.in_(missing_ids)
+                        ).delete(synchronize_session=False)
+                        count = session.query(Track).filter(
+                            Track.id.in_(missing_ids)
+                        ).delete(synchronize_session=False)
+                    else:
+                        count = 0
+                    session.commit()
+                finally:
+                    session.close()
+                text = f"Removed {count} missing tracks."
+            elif self.operation == "rebuild":
+                from app.database.models import Track, Album, Artist, PlaylistTrack
+                session = db.get_session()
+                try:
+                    session.query(PlaylistTrack).delete()
+                    session.query(Track).delete()
+                    session.query(Album).delete()
+                    session.query(Artist).delete()
+                    session.commit()
+                finally:
+                    session.close()
+                count = self._scan()
+                text = f"Index rebuilt. Found {count} tracks."
+            else:
+                text = "Unknown library action."
+        except Exception as exc:
+            logger.exception("Library operation failed: %s", self.operation)
+            text = f"Library operation failed: {exc}"
+        self.signals.finished.emit(self.operation, text)
+
+
 class SettingsManager(QObject):
     """Manages application settings with QML integration"""
     
@@ -71,14 +139,19 @@ class SettingsManager(QObject):
     libraryStatsChanged = Signal()
     themeChanged = Signal()
     updateStatusChanged = Signal()
+    libraryBusyChanged = Signal()
+    libraryOperationStatusChanged = Signal()
+    outputDeviceChanged = Signal()
+    audioBufferChanged = Signal()
     
     def __init__(self):
         super().__init__()
         self._settings_file = Path.home() / ".config" / "aurora-music" / "settings.json"
         self._ensure_settings_dir()
         self._load_settings()
-        self._scanner = None
         self._update_status = ""
+        self._library_busy = False
+        self._library_operation_status = ""
     
     def _ensure_settings_dir(self):
         """Ensure settings directory exists"""
@@ -91,6 +164,7 @@ class SettingsManager(QObject):
             "start_minimized": False,
             "remember_last_session": True,
             "restore_last_playlist": True,
+            "last_session": {},
             "auto_check_updates": True,
             "language": "English",
             "show_desktop_notifications": True,
@@ -98,11 +172,9 @@ class SettingsManager(QObject):
             "music_folders": [],
             "watch_folders_automatically": True,
             "scan_frequency": "Manual",
-            "audio_backend": "MPV (Recommended)",
-            "output_device": "Default",
-            "buffer_size": 512,
+            "output_device": "auto",
+            "audio_buffer": 0.2,
             "theme": "Light",
-            "animated_backgrounds": False
         }
         
         if self._settings_file.exists():
@@ -113,7 +185,13 @@ class SettingsManager(QObject):
                     default_settings.update(saved_settings)
             except (json.JSONDecodeError, IOError):
                 pass
-        
+
+        if default_settings.get("output_device") == "Default":
+            default_settings["output_device"] = "auto"
+        default_settings.setdefault("audio_buffer", 0.2)
+        default_settings.pop("audio_backend", None)
+        default_settings.pop("buffer_size", None)
+        default_settings.pop("animated_backgrounds", None)
         self._settings = default_settings
     
     def _save_settings(self):
@@ -266,11 +344,54 @@ class SettingsManager(QObject):
 
     updateStatus = Property(str, get_update_status, notify=updateStatusChanged)
 
+    def get_library_busy(self):
+        return self._library_busy
+
+    libraryBusy = Property(bool, get_library_busy, notify=libraryBusyChanged)
+
+    def get_library_operation_status(self):
+        return self._library_operation_status
+
+    libraryOperationStatus = Property(
+        str, get_library_operation_status, notify=libraryOperationStatusChanged
+    )
+
+    def get_output_device(self):
+        return self._settings.get("output_device", "auto")
+
+    def set_output_device(self, value):
+        if isinstance(value, str) and value and self._settings.get("output_device") != value:
+            self._settings["output_device"] = value
+            self._save_settings()
+            self.outputDeviceChanged.emit()
+
+    outputDevice = Property(str, get_output_device, set_output_device, notify=outputDeviceChanged)
+
+    def get_audio_buffer(self):
+        return float(self._settings.get("audio_buffer", 0.2))
+
+    def set_audio_buffer(self, value):
+        value = round(max(0.05, min(2.0, float(value))), 2)
+        if self._settings.get("audio_buffer", 0.2) != value:
+            self._settings["audio_buffer"] = value
+            self._save_settings()
+            self.audioBufferChanged.emit()
+
+    audioBuffer = Property(float, get_audio_buffer, set_audio_buffer, notify=audioBufferChanged)
+
     def _set_update_status(self, status):
         self._update_status = status
         self.updateStatusChanged.emit()
     
     # Library statistics
+    def save_last_session(self, state):
+        if self._settings.get("remember_last_session", True):
+            self._settings["last_session"] = state
+            self._save_settings()
+
+    def get_last_session(self):
+        return self._settings.get("last_session", {})
+
     def get_library_stats(self):
         """Get library statistics"""
         from app.database.models import Track, Album, Artist
@@ -306,7 +427,7 @@ class SettingsManager(QObject):
     libraryStats = Property('QVariantMap', get_library_stats, notify=libraryStatsChanged)
     
     # Library management methods
-    @Slot()
+    @Slot(result=str)
     def browseMusicFolder(self):
         """Open folder dialog to select music folder"""
         app = QApplication.instance()
@@ -319,6 +440,8 @@ class SettingsManager(QObject):
             )
             if folder:
                 self.addMusicFolder(folder)
+                return folder
+        return ""
     
     @Slot(str)
     def addMusicFolder(self, folder_path):
@@ -344,69 +467,53 @@ class SettingsManager(QObject):
     @Slot()
     def scanLibrary(self):
         """Scan all music folders"""
-        if not self._scanner:
-            self._scanner = LibraryScanner(db.get_session())
-        
-        folders = self._settings.get("music_folders", [])
-        total_added = 0
-        for folder in folders:
-            if Path(folder).exists():
-                added = self._scanner.scan_directory(folder)
-                total_added += added
-        
-        self.libraryStatsChanged.emit()
-        self.showNotification("Library Scan", f"Added {total_added} tracks")
+        self._start_library_task("scan")
     
     @Slot()
     def rescanLibrary(self):
         """Rescan entire library"""
-        if not self._scanner:
-            self._scanner = LibraryScanner(db.get_session())
-        
-        folders = self._settings.get("music_folders", [])
-        total_added = 0
-        for folder in folders:
-            if Path(folder).exists():
-                added = self._scanner.scan_directory(folder)
-                total_added += added
-        
-        self.libraryStatsChanged.emit()
-        self.showNotification("Library Rescan", f"Processed {total_added} tracks")
+        self._start_library_task("rescan")
     
     @Slot()
     def cleanMissingSongs(self):
         """Remove tracks with missing files"""
-        from app.database.models import Track
-        session = db.get_session()
-        try:
-            tracks = session.query(Track).all()
-            removed = 0
-            for track in tracks:
-                if not Path(track.file_path).exists():
-                    session.delete(track)
-                    removed += 1
-            session.commit()
-            self.libraryStatsChanged.emit()
-            self.showNotification("Clean Library", f"Removed {removed} missing tracks")
-        finally:
-            session.close()
+        self._start_library_task("clean")
     
     @Slot()
     def rebuildDatabase(self):
         """Rebuild the entire database"""
-        from app.database.models import Track, Album, Artist
-        session = db.get_session()
-        try:
-            # Clear all data
-            session.query(Track).delete()
-            session.query(Album).delete()
-            session.query(Artist).delete()
-            session.commit()
-            
-            # Rescan folders
-            self.rescanLibrary()
-        finally:
-            session.close()
+        self._start_library_task("rebuild")
+
+    def _start_library_task(self, operation):
+        if self._library_busy:
+            return
+        self._library_busy = True
+        labels = {
+            "scan": "Scanning your music folders…",
+            "rescan": "Refreshing the library index…",
+            "clean": "Checking for missing files…",
+            "rebuild": "Rebuilding the library index…",
+        }
+        self._library_operation_status = labels[operation]
+        self.libraryBusyChanged.emit()
+        self.libraryOperationStatusChanged.emit()
+        worker = _LibraryTask(operation, self._settings.get("music_folders", []))
+        worker.signals.finished.connect(self._on_library_task_finished)
+        self._library_worker = worker
+        QThreadPool.globalInstance().start(worker)
+
+    @Slot(str, str)
+    def _on_library_task_finished(self, operation, status):
+        self._library_busy = False
+        self._library_operation_status = status
+        self.libraryBusyChanged.emit()
+        self.libraryOperationStatusChanged.emit()
+        self.libraryStatsChanged.emit()
+        titles = {"scan": "Library Scan", "rescan": "Library Refresh", "clean": "Library Cleanup", "rebuild": "Library Rebuild"}
+        self.showNotification(titles[operation], status)
+
+    def wait_for_background_operations(self):
+        QThreadPool.globalInstance().waitForDone()
     
     def _update_autostart(self):
         """Update autostart entry based on setting"""
@@ -415,14 +522,16 @@ class SettingsManager(QObject):
         
         if self._settings.get("launch_at_startup"):
             autostart_dir.mkdir(parents=True, exist_ok=True)
+            project_root = Path(__file__).resolve().parents[2]
             desktop_content = """[Desktop Entry]
 Type=Application
 Name=Aurora Music
-Exec={}
+Exec="{}" -m app.main
+Path="{}"
 Icon=aurora-music
 Terminal=false
 Categories=Audio;Music;Player;
-""".format(os.path.abspath(__file__).replace("settings_manager.py", "main.py"))
+""".format(sys.executable, project_root)
             
             try:
                 with open(autostart_file, 'w') as f:

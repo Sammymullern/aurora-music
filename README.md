@@ -61,8 +61,8 @@ pip install -r requirements-dev.txt
 
 When you first launch Aurora Music:
 
-1. **Add Music Library**: Navigate to Settings → Library → Music Folders and add your music folders
-2. **Scan Library**: Click "Scan Now" to index your audio files, or enable "Watch folders automatically" for automatic monitoring
+1. **Add Music Library**: Open Settings, add folders in the Library section, then open Library and choose **Scan Library**
+2. **Keep It Updated**: Enable **Watch folders automatically** in Settings, or choose a scheduled scan frequency
 3. **Start Playing**: Browse your library and click play on any track
 
 ### Main Features
@@ -126,19 +126,19 @@ Aurora Music stores configuration in:
 
 ### Audio Settings
 
-Configure audio backend and output device in Settings → Audio:
-- **Audio Backend**: MPV (recommended) or GStreamer
-- **Output Device**: Default, PulseAudio, PipeWire, or ALSA
-- **Buffer Size**: Adjust for performance vs latency
+Configure audio output in Settings → Audio:
+- **Playback Engine**: MPV
+- **Output Device**: Choose from devices detected by MPV
+- **Audio Buffer**: Adjust latency and playback stability
 
 ### Library Settings
 
 Configure library behavior in Settings → Library:
-- **Music Folders**: Add, remove, and scan music folders
+- **Music Folders**: Add or remove watched music folders
 - **Watch Folders**: Automatically monitor for changes
-- **Scan Frequency**: Manual, Every 15 min, or Every hour
-- **Actions**: Rescan Library, Clean Missing Songs, Rebuild Database
-- **Statistics**: View songs, albums, artists, and total library size
+- **Scan Frequency**: Manual, every 15 minutes, or every hour
+
+Use the Library page to scan folders, clean missing tracks, rebuild the index, and review library statistics.
 
 ## Troubleshooting
 

@@ -66,6 +66,8 @@ The main window features a sidebar navigation with the following sections:
 - **Now Playing**: Current playback view
 - **Settings**: Application configuration
 
+Settings uses a single scrollable preferences page with General, Library, Audio, and Appearance sections. Library scanning, cleanup, and index rebuild actions live on the Library page.
+
 ### Library View
 
 - **Filters**: Artist, Album, Genre, Year, Mood, BPM, Bitrate

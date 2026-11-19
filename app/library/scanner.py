@@ -5,7 +5,6 @@ Library scanner for indexing audio files
 import logging
 from pathlib import Path
 from typing import List, Optional, Callable
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from sqlalchemy.orm import Session
 
@@ -44,29 +43,20 @@ class LibraryScanner:
         
         logger.info(f"Found {total_files} audio files")
         
-        # Process files
+        # Keep SQLAlchemy session use on this thread. Sharing a Session between
+        # worker threads can corrupt transactions and silently drop tracks.
         added_count = 0
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            futures = {
-                executor.submit(self._process_file, file_path): file_path 
-                for file_path in audio_files
-            }
-            
-            for i, future in enumerate(as_completed(futures)):
-                if self._cancel_flag:
-                    logger.info("Scan cancelled")
-                    break
-                
-                file_path = futures[future]
-                try:
-                    if future.result():
-                        added_count += 1
-                except Exception as e:
-                    logger.error(f"Error processing {file_path}: {e}")
-                
-                if progress_callback:
-                    progress = (i + 1) / total_files * 100
-                    progress_callback(progress)
+        for i, file_path in enumerate(audio_files):
+            if self._cancel_flag:
+                logger.info("Scan cancelled")
+                break
+            try:
+                if self._process_file(file_path):
+                    added_count += 1
+            except Exception as e:
+                logger.error(f"Error processing {file_path}: {e}")
+            if progress_callback:
+                progress_callback((i + 1) / total_files * 100)
         
         self.session.commit()
         logger.info(f"Scan complete: {added_count} tracks added")

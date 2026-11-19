@@ -13,121 +13,70 @@ Rectangle {
         return qsTr(sourceText)
     }
     
-    RowLayout {
+    ColumnLayout {
         anchors.fill: parent
         spacing: 0
-        
-        // Sidebar
+
         Rectangle {
-            id: sidebar
-            Layout.preferredWidth: 260
-            Layout.fillHeight: true
-            color: theme.backgroundDark
-            
-            ColumnLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 104
+            color: theme.background
+
+            RowLayout {
                 anchors.fill: parent
-                spacing: 0
-                
-                // Header
+                anchors.leftMargin: 36
+                anchors.rightMargin: 36
+                spacing: 16
+
                 ColumnLayout {
-                    Layout.topMargin: 40
-                    Layout.leftMargin: 24
-                    Layout.bottomMargin: 32
-                    spacing: 8
-                    
+                    Layout.fillWidth: true
+                    spacing: 5
+
                     Text {
                         text: root.tr("Settings")
-                        font.pixelSize: 32
-                        font.bold: true
                         color: theme.textPrimary
+                        font.pixelSize: 30
+                        font.weight: Font.DemiBold
                     }
-                    
                     Text {
-                        text: root.tr("Configure the music player")
-                        font.pixelSize: 13
+                        text: root.tr("Tune Aurora Music to your listening setup")
                         color: theme.textSecondary
+                        font.pixelSize: 14
                     }
                 }
-                
-                // Sidebar items
-                Repeater {
-                    model: [
-                        { name: root.tr("General"), icon: "⚙" },
-                        { name: root.tr("Library"), icon: "📁" },
-                        { name: root.tr("Audio"), icon: "🔊" },
-                        { name: root.tr("Appearance"), icon: "🎨" },
-                        { name: root.tr("Playback"), icon: "▶" },
-                        { name: root.tr("Advanced"), icon: "⚡" }
-                    ]
-                    
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 52
-                        color: sidebar.currentIndex === index ? theme.primary : "transparent"
-                        radius: 8
-                        
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 16
-                            anchors.rightMargin: 16
-                            spacing: 12
-                            
-                            Text {
-                                text: modelData.icon
-                                font.pixelSize: 20
-                                color: sidebar.currentIndex === index ? "#ffffff" : theme.textSecondary
-                            }
-                            
-                            Text {
-                                text: modelData.name
-                                font.pixelSize: 15
-                                color: sidebar.currentIndex === index ? "#ffffff" : theme.textSecondary
-                                font.bold: sidebar.currentIndex === index
-                            }
-                            
-                            Item { Layout.fillWidth: true }
-                        }
-                        
-                        Behavior on color {
-                            ColorAnimation { duration: 150 }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: sidebar.currentIndex = index
-                            hoverEnabled: true
-                            
-                            onEntered: parent.color = sidebar.currentIndex === index ? theme.primary : theme.surface
-                            onExited: parent.color = sidebar.currentIndex === index ? theme.primary : "transparent"
-                        }
-                    }
-                }
-                
-                Item { Layout.fillHeight: true }
             }
-            
-            property int currentIndex: 0
         }
-        
-        // Content area
+
         ScrollView {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-            
+            topPadding: 32
+            bottomPadding: 48
+
             ColumnLayout {
-                width: Math.min(parent.width * 0.9, 1100)
+                width: Math.min(parent.width * 0.94, 1100)
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 56
-                anchors.topMargin: 56
-                anchors.bottomMargin: 56
+                spacing: 24
                 
                 // General section
-                ColumnLayout {
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: generalCardContent.implicitHeight + 48
+                    radius: 16
+                    color: theme.surface
+                    border.color: theme.border
+                    border.width: 1
+
+                    ColumnLayout {
+                        id: generalCardContent
+                        anchors.fill: parent
+                        anchors.margins: 24
+
+ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 28
-                    visible: sidebar.currentIndex === 0
                     
                     Text {
                         text: root.tr("General")
@@ -467,13 +416,7 @@ Rectangle {
                                     return index >= 0 ? index : 0
                                 }
                                 onActivated: {
-                                    if (settings) {
-                                        settings.language = currentText
-                                        // Force UI update by re-evaluating
-                                        Qt.callLater(function() {
-                                            languageComboBox.currentIndex = languageComboBox.currentIndex
-                                        })
-                                    }
+                                    if (settings) settings.language = currentText
                                 }
                                 
                                 background: Rectangle {
@@ -602,12 +545,26 @@ Rectangle {
                         }
                     }
                 }
+                    }
+                }
                 
                 // Library section
-                ColumnLayout {
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: libraryCardContent.implicitHeight + 48
+                    radius: 16
+                    color: theme.surface
+                    border.color: theme.border
+                    border.width: 1
+
+                    ColumnLayout {
+                        id: libraryCardContent
+                        anchors.fill: parent
+                        anchors.margins: 24
+
+ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 28
-                    visible: sidebar.currentIndex === 1
                     
                     Text {
                         text: root.tr("Library")
@@ -719,30 +676,6 @@ Rectangle {
                                     }
                                 }
                                 
-                                Button {
-                                    text: root.tr("Scan Now")
-                                    Layout.preferredWidth: 100
-                                    Layout.preferredHeight: 40
-                                    onClicked: settings.scanLibrary()
-                                    
-                                    contentItem: Text {
-                                        text: parent.text
-                                        color: "white"
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                        horizontalAlignment: Text.AlignHCenter
-                                        verticalAlignment: Text.AlignVCenter
-                                    }
-                                    
-                                    background: Rectangle {
-                                        color: parent.parent.hovered ? theme.primaryLight : theme.primary
-                                        radius: 6
-                                        
-                                        Behavior on color {
-                                            ColorAnimation { duration: 150 }
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
@@ -866,401 +799,166 @@ Rectangle {
                         }
                     }
                     
-                    // Buttons subsection
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 20
-                        
-                        Text {
-                            text: root.tr("Actions")
-                            font.pixelSize: 16
-                            font.bold: true
-                            color: theme.textPrimary
-                        }
-                        
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 12
-                            
-                            Button {
-                                text: root.tr("Rescan Library")
-                                Layout.preferredWidth: 140
-                                Layout.preferredHeight: 40
-                                onClicked: settings.rescanLibrary()
-                                
-                                contentItem: Text {
-                                    text: parent.text
-                                    color: "white"
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                
-                                background: Rectangle {
-                                    color: parent.parent.hovered ? theme.primaryLight : theme.primary
-                                    radius: 6
-                                    
-                                    Behavior on color {
-                                        ColorAnimation { duration: 150 }
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                text: root.tr("Clean Missing Songs")
-                                Layout.preferredWidth: 160
-                                Layout.preferredHeight: 40
-                                onClicked: settings.cleanMissingSongs()
-                                
-                                contentItem: Text {
-                                    text: parent.text
-                                    color: "white"
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                
-                                background: Rectangle {
-                                    color: parent.parent.hovered ? theme.primaryLight : theme.primary
-                                    radius: 6
-                                    
-                                    Behavior on color {
-                                        ColorAnimation { duration: 150 }
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                text: root.tr("Rebuild Database")
-                                Layout.preferredWidth: 140
-                                Layout.preferredHeight: 40
-                                onClicked: settings.rebuildDatabase()
-                                
-                                contentItem: Text {
-                                    text: parent.text
-                                    color: "white"
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                
-                                background: Rectangle {
-                                    color: parent.parent.hovered ? theme.primaryLight : theme.primary
-                                    radius: 6
-                                    
-                                    Behavior on color {
-                                        ColorAnimation { duration: 150 }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Statistics subsection
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 20
-                        
-                        Text {
-                            text: root.tr("Statistics")
-                            font.pixelSize: 16
-                            font.bold: true
-                            color: theme.textPrimary
-                        }
-                        
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 120
-                            color: theme.surface
-                            radius: 8
-                            
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.margins: 24
-                                spacing: 40
-                                
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 8
-                                    
-                                    Text {
-                                        text: settings ? settings.libraryStats.songs || "0" : "0"
-                                        font.pixelSize: 28
-                                        font.bold: true
-                                        color: theme.primary
-                                    }
-                                    
-                                    Text {
-                                        text: root.tr("Songs")
-                                        font.pixelSize: 14
-                                        color: theme.textSecondary
-                                    }
-                                }
-                                
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 8
-                                    
-                                    Text {
-                                        text: settings ? settings.libraryStats.albums || "0" : "0"
-                                        font.pixelSize: 28
-                                        font.bold: true
-                                        color: theme.primary
-                                    }
-                                    
-                                    Text {
-                                        text: root.tr("Albums")
-                                        font.pixelSize: 14
-                                        color: theme.textSecondary
-                                    }
-                                }
-                                
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 8
-                                    
-                                    Text {
-                                        text: settings ? settings.libraryStats.artists || "0" : "0"
-                                        font.pixelSize: 28
-                                        font.bold: true
-                                        color: theme.primary
-                                    }
-                                    
-                                    Text {
-                                        text: root.tr("Artists")
-                                        font.pixelSize: 14
-                                        color: theme.textSecondary
-                                    }
-                                }
-                                
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 8
-                                    
-                                    Text {
-                                        text: settings ? settings.libraryStats.size || "0 B" : "0 B"
-                                        font.pixelSize: 28
-                                        font.bold: true
-                                        color: theme.primary
-                                    }
-                                    
-                                    Text {
-                                        text: root.tr("Size")
-                                        font.pixelSize: 14
-                                        color: theme.textSecondary
-                                    }
-                                }
-                            }
-                        }
+                }
                     }
                 }
-                
-                // Audio section
-                ColumnLayout {
+
+                // Audio preferences
+                Rectangle {
                     Layout.fillWidth: true
-                    spacing: 28
-                    visible: sidebar.currentIndex === 2
-                    
+                    implicitHeight: audioCardContent.implicitHeight + 48
+                    radius: 16
+                    color: theme.surface
+                    border.color: theme.border
+                    border.width: 1
+
+                    ColumnLayout {
+                        id: audioCardContent
+                        anchors.fill: parent
+                        anchors.margins: 24
+
+ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 24
+
                     Text {
                         text: "Audio"
                         font.pixelSize: 22
                         font.bold: true
                         color: theme.textPrimary
                     }
-                    
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 2
-                        color: theme.primary
-                        radius: 1
+                        Layout.preferredHeight: 1
+                        color: theme.border
                     }
-                            
-                    // Audio backend row
-                    ColumnLayout {
+
+                    RowLayout {
                         Layout.fillWidth: true
-                        spacing: 20
-                        
-                        RowLayout {
+                        spacing: 24
+                        ColumnLayout {
+                            Layout.preferredWidth: 220
+                            spacing: 6
+                            Text { text: "Playback engine"; font.pixelSize: 15; font.bold: true; color: theme.textPrimary }
+                            Text { text: "Aurora uses MPV for reliable playback."; font.pixelSize: 13; color: theme.textSecondary; wrapMode: Text.WordWrap }
+                        }
+                        Text {
+                            text: "MPV"
+                            color: theme.primary
+                            font.pixelSize: 14
+                            font.bold: true
+                            Layout.preferredWidth: 180
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 24
+                        ColumnLayout {
+                            Layout.preferredWidth: 220
+                            spacing: 6
+                            Text { text: "Output device"; font.pixelSize: 15; font.bold: true; color: theme.textPrimary }
+                            Text { text: "Choose an output detected by MPV."; font.pixelSize: 13; color: theme.textSecondary; wrapMode: Text.WordWrap }
+                        }
+                        ComboBox {
+                            id: outputDeviceCombo
                             Layout.fillWidth: true
-                            spacing: 24
-                            
-                            ColumnLayout {
-                                Layout.preferredWidth: 220
-                                spacing: 20
-                                
-                                Text {
-                                    text: "Audio Backend"
-                                    font.pixelSize: 15
-                                    font.bold: true
-                                    color: theme.textPrimary
-                                }
-                                
-                                Text {
-                                    text: "Choose the playback engine"
-                                    font.pixelSize: 13
-                                    color: theme.textSecondary
-                                    lineHeight: 1.4
-                                }
+                            Layout.maximumWidth: 600
+                            Layout.preferredHeight: 46
+                            model: player ? player.audioDevices : []
+                            textRole: "description"
+                            valueRole: "name"
+                            currentIndex: {
+                                if (!settings || !player) return 0
+                                for (var i = 0; i < player.audioDevices.length; ++i)
+                                    if (player.audioDevices[i].name === settings.outputDevice) return i
+                                return 0
                             }
-                            
-                            ComboBox {
-                                Layout.fillWidth: true
-                                Layout.maximumWidth: 600
-                                Layout.preferredHeight: 48
-                                model: ["MPV (Recommended)", "GStreamer"]
-                                
-                                background: Rectangle {
-                                    color: theme.background
-                                    radius: 8
-                                    border.color: theme.border
-                                    border.width: 1
-                                    
-                                    Behavior on border.color {
-                                        ColorAnimation { duration: 150 }
-                                    }
-                                }
-                                
-                                contentItem: Text {
-                                    text: parent.displayText
-                                    color: theme.textPrimary
-                                    font.pixelSize: 14
-                                    verticalAlignment: Text.AlignVCenter
-                                    leftPadding: 14
-                                }
+                            onActivated: if (settings) settings.outputDevice = currentValue
+                            background: Rectangle {
+                                color: theme.surface
+                                radius: 10
+                                border.color: theme.border
+                            }
+                            contentItem: Text {
+                                text: outputDeviceCombo.displayText
+                                color: theme.textPrimary
+                                font.pixelSize: 14
+                                verticalAlignment: Text.AlignVCenter
+                                leftPadding: 14
                             }
                         }
                     }
-                            
-                    // Output device row
-                    ColumnLayout {
+
+                    RowLayout {
                         Layout.fillWidth: true
-                        spacing: 20
-                        
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 24
-                            
-                            ColumnLayout {
-                                Layout.preferredWidth: 220
-                                spacing: 20
-                                
-                                Text {
-                                    text: "Output Device"
-                                    font.pixelSize: 15
-                                    font.bold: true
-                                    color: theme.textPrimary
-                                }
-                                
-                                Text {
-                                    text: "Select your audio output"
-                                    font.pixelSize: 13
-                                    color: theme.textSecondary
-                                    lineHeight: 1.4
-                                }
-                            }
-                            
-                            ComboBox {
-                                Layout.fillWidth: true
-                                Layout.maximumWidth: 600
-                                Layout.preferredHeight: 48
-                                model: ["Default", "PulseAudio", "PipeWire", "ALSA"]
-                                
-                                background: Rectangle {
-                                    color: theme.background
-                                    radius: 8
-                                    border.color: theme.border
-                                    border.width: 1
-                                    
-                                    Behavior on border.color {
-                                        ColorAnimation { duration: 150 }
-                                    }
-                                }
-                                
-                                contentItem: Text {
-                                    text: parent.displayText
-                                    color: theme.textPrimary
-                                    font.pixelSize: 14
-                                    verticalAlignment: Text.AlignVCenter
-                                    leftPadding: 14
-                                }
-                            }
+                        spacing: 24
+                        ColumnLayout {
+                            Layout.preferredWidth: 220
+                            spacing: 6
+                            Text { text: "Audio buffer"; font.pixelSize: 15; font.bold: true; color: theme.textPrimary }
+                            Text { text: "Smaller buffers reduce latency; larger buffers can improve stability."; font.pixelSize: 13; color: theme.textSecondary; wrapMode: Text.WordWrap }
                         }
-                    }
-                            
-                    // Buffer size row
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 20
-                        
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 24
-                            
-                            ColumnLayout {
-                                Layout.preferredWidth: 220
-                                spacing: 20
-                                
-                                Text {
-                                    text: "Buffer Size"
-                                    font.pixelSize: 15
-                                    font.bold: true
-                                    color: theme.textPrimary
+                            Layout.maximumWidth: 600
+                            spacing: 16
+                            Slider {
+                                id: audioBufferSlider
+                                Layout.fillWidth: true
+                                from: 0.05
+                                to: 2.0
+                                stepSize: 0.05
+                                value: settings ? settings.audioBuffer : 0.2
+                                onValueChanged: if (settings) settings.audioBuffer = value
+                                background: Rectangle {
+                                    x: audioBufferSlider.leftPadding
+                                    y: audioBufferSlider.topPadding + audioBufferSlider.availableHeight / 2 - height / 2
+                                    width: audioBufferSlider.availableWidth
+                                    height: 5
+                                    radius: 3
+                                    color: theme.surfaceVariant
+                                    Rectangle { width: audioBufferSlider.visualPosition * parent.width; height: parent.height; radius: 3; color: theme.primary }
                                 }
-                                
-                                Text {
-                                    text: "Lower = less latency, higher = more stable"
-                                    font.pixelSize: 13
-                                    color: theme.textSecondary
-                                    lineHeight: 1.4
+                                handle: Rectangle {
+                                    x: audioBufferSlider.leftPadding + audioBufferSlider.visualPosition * audioBufferSlider.availableWidth - width / 2
+                                    y: audioBufferSlider.topPadding + audioBufferSlider.availableHeight / 2 - height / 2
+                                    width: 18
+                                    height: 18
+                                    radius: 9
+                                    color: "white"
+                                    border.color: theme.primary
                                 }
                             }
-                            
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.maximumWidth: 600
-                                spacing: 16
-                                
-                                Slider {
-                                    Layout.fillWidth: true
-                                    from: 256
-                                    to: 8192
-                                    value: 2048
-                                    
-                                    background: Rectangle {
-                                        color: theme.background
-                                        radius: 4
-                                        height: 6
-                                    }
-                                    
-                                    handle: Rectangle {
-                                        x: parent.visualPosition * parent.width - width / 2
-                                        y: parent.height / 2 - height / 2
-                                        width: 20
-                                        height: 20
-                                        radius: 10
-                                        color: theme.primary
-                                    }
-                                }
-                                
-                                Text {
-                                    text: "2048 KB"
-                                    color: theme.textPrimary
-                                    font.pixelSize: 14
-                                    Layout.preferredWidth: 90
-                                }
+                            Text {
+                                text: Math.round(audioBufferSlider.value * 1000) + " ms"
+                                color: theme.textPrimary
+                                font.pixelSize: 14
+                                Layout.preferredWidth: 64
                             }
                         }
                     }
                 }
-                
+                    }
+                }
+
                 // Appearance section
-                ColumnLayout {
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: appearanceCardContent.implicitHeight + 48
+                    radius: 16
+                    color: theme.surface
+                    border.color: theme.border
+                    border.width: 1
+
+                    ColumnLayout {
+                        id: appearanceCardContent
+                        anchors.fill: parent
+                        anchors.margins: 24
+
+ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 28
-                    visible: sidebar.currentIndex === 3
                     
                     Text {
                         text: "Appearance"
@@ -1364,101 +1062,8 @@ Rectangle {
                         }
                     }
                             
-                    // Animated backgrounds row
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 20
-                        
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 24
-                            
-                            ColumnLayout {
-                                Layout.preferredWidth: 220
-                                spacing: 20
-                                
-                                Text {
-                                    text: "Animated Backgrounds"
-                                    font.pixelSize: 15
-                                    font.bold: true
-                                    color: theme.textPrimary
-                                }
-                                
-                                Text {
-                                    text: "Enable subtle background animations"
-                                    font.pixelSize: 13
-                                    color: theme.textSecondary
-                                    lineHeight: 1.4
-                                }
-                            }
-                            
-                            Switch {
-                                checked: true
-                                Layout.preferredHeight: 48
-                                
-                                contentItem: Text {
-                                    text: parent.checked ? "Enabled" : "Disabled"
-                                    color: theme.textPrimary
-                                    font.pixelSize: 14
-                                    leftPadding: parent.indicator.width + 12
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                
-                                indicator: Rectangle {
-                                    implicitWidth: 50
-                                    implicitHeight: 28
-                                    radius: 14
-                                    color: parent.checked ? theme.primary : theme.background
-                                    border.color: theme.border
-                                    border.width: 1
-                                    
-                                    Behavior on color {
-                                        ColorAnimation { duration: 150 }
-                                    }
-                                    
-                                    Rectangle {
-                                        x: parent.parent.checked ? parent.width - width - 2 : 2
-                                        y: parent.height / 2 - height / 2
-                                        width: 22
-                                        height: 22
-                                        radius: 11
-                                        color: "white"
-                                        
-                                        Behavior on x {
-                                            NumberAnimation { duration: 150; easing.type: Easing.InOutQuad }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+
                 }
-                
-                // Placeholder sections
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 28
-                    visible: sidebar.currentIndex === 4 || sidebar.currentIndex === 5
-                    
-                    Text {
-                        text: sidebar.currentIndex === 4 ? "Playback" : "Advanced"
-                        font.pixelSize: 22
-                        font.bold: true
-                        color: theme.textPrimary
-                    }
-                    
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 2
-                        color: theme.primary
-                        radius: 1
-                    }
-                    
-                    Text {
-                        text: "Coming soon"
-                        color: "#666688"
-                        font.pixelSize: 16
-                        Layout.topMargin: 40
                     }
                 }
                 

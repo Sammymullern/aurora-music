@@ -431,8 +431,10 @@ class MusicManager(QObject):
     def refreshLibrary(self):
         """Refresh the library from database"""
         self._load_songs()
+        self._load_library_stats()
         self.songsChanged.emit()
         self.songCountChanged.emit()
+        self.libraryStatsChanged.emit()
     
     @Slot()
     def updateMissingDurations(self):

@@ -24,6 +24,9 @@ class Player(QObject):
     shuffle_changed = Signal(bool)  # Shuffle state
     repeat_changed = Signal(str)  # 'off', 'all', 'one'
     track_info_changed = Signal()  # Track metadata changed
+    audioDevicesChanged = Signal()
+    audioDeviceChanged = Signal(str)
+    audioBufferChanged = Signal(float)
 
     def __init__(self, parent: Optional[QObject] = None):
         super().__init__(parent)
@@ -44,6 +47,9 @@ class Player(QObject):
         self._current_album_art: str = ""
         self._current_position: float = 0.0
         self._current_duration: float = 0.0
+        self._audio_devices = [{"name": "auto", "description": "System default"}]
+        self._audio_device = "auto"
+        self._audio_buffer = 0.2
 
         self._advancing: bool = False
         self._eof_watchdog_counter: int = 0
@@ -126,6 +132,7 @@ class Player(QObject):
                     logger.error(f"Error in end-file handler: {e}", exc_info=True)
 
             self._is_initialized = True
+            self.refreshAudioDevices()
             logger.info("MPV player initialized successfully")
 
         except Exception as e:
@@ -719,6 +726,63 @@ class Player(QObject):
     currentTrackId = Property(str, get_currentTrackId, notify=track_info_changed)
     currentTrackFavorite = Property(bool, get_currentTrackFavorite, notify=track_info_changed)
 
+    def get_audio_devices(self):
+        return self._audio_devices
+
+    def get_audio_device(self):
+        return self._audio_device
+
+    def get_audio_buffer(self):
+        return self._audio_buffer
+
+    audioDevices = Property("QVariantList", get_audio_devices, notify=audioDevicesChanged)
+    audioDevice = Property(str, get_audio_device, notify=audioDeviceChanged)
+    audioBuffer = Property(float, get_audio_buffer, notify=audioBufferChanged)
+
+    @Slot()
+    def refreshAudioDevices(self):
+        devices = [{"name": "auto", "description": "System default"}]
+        if self._is_initialized:
+            try:
+                for device in self._mpv.get_property("audio-device-list") or []:
+                    name = str(device.get("name", ""))
+                    if name and name != "auto":
+                        devices.append({
+                            "name": name,
+                            "description": str(device.get("description") or name),
+                        })
+            except Exception as exc:
+                logger.debug("Could not query MPV audio devices: %s", exc)
+        self._audio_devices = devices
+        self.audioDevicesChanged.emit()
+
+    @Slot(str, result=bool)
+    def setAudioDevice(self, name: str) -> bool:
+        if not self._is_initialized or not name:
+            return False
+        try:
+            self._mpv.set_property("audio-device", name)
+            self._audio_device = name
+            self.audioDeviceChanged.emit(name)
+            return True
+        except Exception as exc:
+            logger.warning("Could not set audio device %s: %s", name, exc)
+            return False
+
+    @Slot(float, result=bool)
+    def setAudioBuffer(self, seconds: float) -> bool:
+        seconds = max(0.05, min(2.0, float(seconds)))
+        if not self._is_initialized:
+            return False
+        try:
+            self._mpv.set_property("audio-buffer", seconds)
+            self._audio_buffer = seconds
+            self.audioBufferChanged.emit(seconds)
+            return True
+        except Exception as exc:
+            logger.warning("Could not set MPV audio buffer: %s", exc)
+            return False
+
     @staticmethod
     def _normalize_playlist_item(item: Any) -> Dict[str, Any]:
         """Normalize a playlist item (can be path string, Path, or dict) to a dict.
@@ -761,6 +825,37 @@ class Player(QObject):
         """Load a QML playlist and start at the requested track."""
         self.set_playlist(tracks)
         return self._play_at_index(index, auto_play=True)
+
+    def get_session_state(self) -> Dict[str, Any]:
+        return {
+            "playlist": self._playlist,
+            "index": self._current_index,
+            "position": self.get_position(),
+            "shuffle": self._shuffle,
+            "repeat": self._repeat,
+        }
+
+    def restore_session(self, state: Dict[str, Any]) -> bool:
+        tracks = [
+            item for item in state.get("playlist", [])
+            if isinstance(item, dict) and Path(item.get("file_path", "")).is_file()
+        ]
+        if not tracks:
+            return False
+        self._shuffle = bool(state.get("shuffle", False))
+        repeat = state.get("repeat", "off")
+        self._repeat = repeat if repeat in {"off", "all", "one"} else "off"
+        self.set_playlist(tracks)
+        index = int(state.get("index", 0))
+        index = max(0, min(index, len(tracks) - 1))
+        if not self._play_at_index(index, auto_play=False):
+            return False
+        position = max(0.0, float(state.get("position", 0.0)))
+        if position:
+            self.seek(position)
+        self.shuffle_changed.emit(self._shuffle)
+        self.repeat_changed.emit(self._repeat)
+        return True
 
     def get_current_index(self) -> int:
         """Get current playlist index"""
