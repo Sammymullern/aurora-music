@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#16162b"
+    color: theme.backgroundDark
     
     RowLayout {
         anchors.fill: parent

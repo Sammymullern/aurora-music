@@ -756,6 +756,12 @@ class Player(QObject):
         self._current_index = -1
         logger.info(f"Playlist set with {len(self._playlist)} tracks")
 
+    @Slot("QVariantList", int, result=bool)
+    def playPlaylist(self, tracks: List[Any], index: int = 0) -> bool:
+        """Load a QML playlist and start at the requested track."""
+        self.set_playlist(tracks)
+        return self._play_at_index(index, auto_play=True)
+
     def get_current_index(self) -> int:
         """Get current playlist index"""
         return self._current_index

@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#1a1a2e"
+    color: theme.background
     property int playlistId: 0
     property string playlistName: ""
     property var playlistStats: playlistController.getPlaylistStats(root.playlistId)
@@ -26,7 +26,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 280
-            color: "#1a1a2e"
+            color: theme.background
             
             // Top navigation row
             RowLayout {
@@ -46,7 +46,7 @@ Rectangle {
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                         font.pixelSize: 24
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -73,7 +73,7 @@ Rectangle {
                     radius: 12
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "#ec4899" }
-                        GradientStop { position: 1.0; color: "#8b5cf6" }
+                        GradientStop { position: 1.0; color: theme.primaryLight }
                     }
                     
                     Text {
@@ -93,7 +93,7 @@ Rectangle {
                         text: root.playlistName
                         font.pixelSize: 36
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                         Layout.fillWidth: true
                         elide: Text.ElideRight
                     }
@@ -101,13 +101,13 @@ Rectangle {
                     Text {
                         text: playlistStats.songCount + " songs • " + playlistStats.totalDuration
                         font.pixelSize: 15
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                     }
                     
                     Text {
                         text: "Created by You"
                         font.pixelSize: 15
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                     }
                     
                     Item { Layout.fillHeight: true }
@@ -120,7 +120,7 @@ Rectangle {
                             font.pixelSize: 14
                             font.bold: true
                             background: Rectangle {
-                                color: "#7c3aed"
+                                color: theme.primary
                                 radius: 25
                                 implicitHeight: 52
                                 implicitWidth: 130
@@ -136,7 +136,7 @@ Rectangle {
                             onClicked: {
                                 var tracks = playlistController.getPlaylistTracks(root.playlistId)
                                 if (tracks.length > 0) {
-                                    musicManager.playSong(tracks[0].id)
+                                    player.playPlaylist(tracks, 0)
                                     playlistTracksList.model = tracks
                                 }
                             }
@@ -146,7 +146,7 @@ Rectangle {
                             text: "Shuffle"
                             font.pixelSize: 14
                             background: Rectangle {
-                                color: "#4a4a6a"
+                                color: theme.surfaceVariant
                                 radius: 25
                                 implicitHeight: 52
                                 implicitWidth: 110
@@ -170,7 +170,7 @@ Rectangle {
                                         shuffled[j] = temp
                                     }
                                     // Play first shuffled track and update model to shuffled order
-                                    musicManager.playSong(shuffled[0].id)
+                                    player.playPlaylist(shuffled, 0)
                                     playlistTracksList.model = shuffled
                                 }
                             }
@@ -180,7 +180,7 @@ Rectangle {
                             text: "+ Add Tracks"
                             font.pixelSize: 14
                             background: Rectangle {
-                                color: "#4a4a6a"
+                                color: theme.surfaceVariant
                                 radius: 25
                                 implicitHeight: 52
                                 implicitWidth: 130
@@ -205,7 +205,7 @@ Rectangle {
             Layout.leftMargin: 30
             Layout.rightMargin: 30
             Layout.preferredHeight: 1
-            color: "#4a4a6a"
+            color: theme.surfaceVariant
         }
         
         // Track List Area
@@ -241,21 +241,21 @@ Rectangle {
                         text: "This playlist is empty"
                         font.pixelSize: 24
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                         Layout.alignment: Qt.AlignHCenter
                     }
                     
                     Text {
                         text: "Start building it by adding songs"
                         font.pixelSize: 14
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                         Layout.alignment: Qt.AlignHCenter
                     }
                     
                     Button {
                         text: "+ Add Songs"
                         background: Rectangle {
-                            color: "#7c3aed"
+                            color: theme.primary
                             radius: 25
                             implicitHeight: 50
                             implicitWidth: 150
@@ -276,7 +276,7 @@ Rectangle {
             delegate: Rectangle {
                 width: ListView.view.width
                 height: 76
-                color: modelData.id == player.currentTrackId ? "#2a2a4a" : "transparent"
+                color: modelData.id == player.currentTrackId ? theme.surfaceVariant : "transparent"
                 radius: 8
                 
                 RowLayout {
@@ -288,7 +288,7 @@ Rectangle {
                     Text {
                         text: modelData.id == player.currentTrackId ? "▶" : (index + 1)
                         font.pixelSize: modelData.id == player.currentTrackId ? 12 : 14
-                        color: modelData.id == player.currentTrackId ? "#7c3aed" : "#a0a0a0"
+                        color: modelData.id == player.currentTrackId ? theme.primary : theme.textSecondary
                         Layout.preferredWidth: 30
                         horizontalAlignment: Text.AlignHCenter
                     }
@@ -303,7 +303,7 @@ Rectangle {
                             text: modelData.title || "Unknown Track"
                             font.pixelSize: 15
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                         }
@@ -311,7 +311,7 @@ Rectangle {
                         Text {
                             text: (modelData.artist || "Unknown Artist") + " • " + (modelData.album || "Unknown Album")
                             font.pixelSize: 13
-                            color: "#a0a0a0"
+                            color: theme.textSecondary
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                         }
@@ -321,7 +321,7 @@ Rectangle {
                     Text {
                         text: formatDuration(modelData.duration || 0)
                         font.pixelSize: 13
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                         Layout.preferredWidth: 50
                         horizontalAlignment: Text.AlignRight
                     }
@@ -332,8 +332,9 @@ Rectangle {
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     onClicked: function(mouse) {
                         if (mouse.button === Qt.LeftButton) {
-                            musicManager.playSong(modelData.id)
-                            playlistTracksList.model = playlistController.getPlaylistTracks(root.playlistId)
+                            var tracks = playlistController.getPlaylistTracks(root.playlistId)
+                            player.playPlaylist(tracks, index)
+                            playlistTracksList.model = tracks
                         } else if (mouse.button === Qt.RightButton) {
                             trackContextMenu.popup()
                         }
@@ -345,9 +346,9 @@ Rectangle {
                     id: trackContextMenu
                     width: 200
                     background: Rectangle {
-                        color: "#252542"
+                        color: theme.surface
                         radius: 12
-                        border.color: "#7c3aed"
+                        border.color: theme.primary
                         border.width: 2
                     }
                     
@@ -356,18 +357,19 @@ Rectangle {
                         height: 45
                         contentItem: Text {
                             text: parent.text
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                             font.pixelSize: 14
                             verticalAlignment: Text.AlignVCenter
                             leftPadding: 15
                         }
                         background: Rectangle {
-                            color: parent.hovered ? "#2a2a4a" : "transparent"
+                            color: parent.hovered ? theme.surfaceVariant : "transparent"
                             radius: 8
                         }
                         onTriggered: {
-                            musicManager.playSong(modelData.id)
-                            playlistTracksList.model = playlistController.getPlaylistTracks(root.playlistId)
+                            var tracks = playlistController.getPlaylistTracks(root.playlistId)
+                            player.playPlaylist(tracks, index)
+                            playlistTracksList.model = tracks
                         }
                     }
                     
@@ -382,7 +384,7 @@ Rectangle {
                             leftPadding: 15
                         }
                         background: Rectangle {
-                            color: parent.hovered ? "#2a2a4a" : "transparent"
+                            color: parent.hovered ? theme.surfaceVariant : "transparent"
                             radius: 8
                         }
                         onTriggered: {
@@ -406,7 +408,7 @@ Rectangle {
             Layout.leftMargin: 30
             Layout.rightMargin: 30
             Layout.bottomMargin: 20
-            color: "#252542"
+            color: theme.surface
             radius: 8
             
             RowLayout {
@@ -418,13 +420,13 @@ Rectangle {
                 Text {
                     text: playlistStats.songCount + " songs"
                     font.pixelSize: 13
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                 }
                 
                 Text {
                     text: playlistStats.totalDuration
                     font.pixelSize: 13
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                 }
                 
                 Item { Layout.fillWidth: true }
@@ -473,9 +475,9 @@ Rectangle {
         
         anchors.centerIn: parent
         background: Rectangle {
-            color: "#1a1a2e"
+            color: theme.background
             radius: 12
-            border.color: "#7c3aed"
+            border.color: theme.primary
             border.width: 2
         }
         
@@ -492,7 +494,7 @@ Rectangle {
                     text: "Edit Playlist"
                     font.pixelSize: 18
                     font.bold: true
-                    color: "#e0e0e0"
+                    color: theme.textPrimary
                 }
                 
                 Item { Layout.fillWidth: true }
@@ -506,7 +508,7 @@ Rectangle {
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                         font.pixelSize: 20
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -523,11 +525,11 @@ Rectangle {
                 Layout.preferredHeight: 45
                 placeholderText: "Playlist name..."
                 text: root.playlistName
-                color: "#e0e0e0"
+                color: theme.textPrimary
                 font.pixelSize: 13
                 padding: 10
                 background: Rectangle {
-                    color: "#252542"
+                    color: theme.surface
                     radius: 8
                 }
                 selectByMouse: true
@@ -569,7 +571,7 @@ Rectangle {
                     Layout.preferredHeight: 40
                     Layout.preferredWidth: 100
                     background: Rectangle {
-                        color: "#7c3aed"
+                        color: theme.primary
                         radius: 20
                     }
                     contentItem: Text {
@@ -602,9 +604,9 @@ Rectangle {
         
         anchors.centerIn: parent
         background: Rectangle {
-            color: "#1a1a2e"
+            color: theme.background
             radius: 12
-            border.color: "#7c3aed"
+            border.color: theme.primary
             border.width: 2
         }
         
@@ -618,7 +620,7 @@ Rectangle {
                 text: "Add Tracks to " + root.playlistName
                 font.pixelSize: 24
                 font.bold: true
-                color: "#e0e0e0"
+                color: theme.textPrimary
                 Layout.fillWidth: true
             }
             
@@ -628,11 +630,11 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 50
                 placeholderText: "🔍 Search tracks..."
-                color: "#e0e0e0"
+                color: theme.textPrimary
                 font.pixelSize: 14
                 padding: 12
                 background: Rectangle {
-                    color: "#252542"
+                    color: theme.surface
                     radius: 10
                 }
                 selectByMouse: true
@@ -651,7 +653,7 @@ Rectangle {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    color: "#252542"
+                    color: theme.surface
                     radius: 12
                     
                     ColumnLayout {
@@ -662,7 +664,7 @@ Rectangle {
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 50
-                            color: "#1a1a2e"
+                            color: theme.background
                             radius: 12
                             
                             Text {
@@ -670,7 +672,7 @@ Rectangle {
                                 text: "Available Songs"
                                 font.pixelSize: 16
                                 font.bold: true
-                                color: "#e0e0e0"
+                                color: theme.textPrimary
                             }
                         }
                         
@@ -704,14 +706,14 @@ Rectangle {
                                         text: "No tracks found"
                                         font.pixelSize: 18
                                         font.bold: true
-                                        color: "#e0e0e0"
+                                        color: theme.textPrimary
                                         Layout.alignment: Qt.AlignHCenter
                                     }
                                     
                                     Text {
                                         text: "Try a different search term"
                                         font.pixelSize: 12
-                                        color: "#a0a0a0"
+                                        color: theme.textSecondary
                                         Layout.alignment: Qt.AlignHCenter
                                     }
                                 }
@@ -725,7 +727,7 @@ Rectangle {
                                 
                                 Rectangle {
                                     anchors.fill: parent
-                                    color: "#2a2a4a"
+                                    color: theme.surfaceVariant
                                     radius: 8
                                     
                                     RowLayout {
@@ -741,7 +743,7 @@ Rectangle {
                                                 text: modelData.title || "Unknown Track"
                                                 font.pixelSize: 14
                                                 font.bold: true
-                                                color: "#e0e0e0"
+                                                color: theme.textPrimary
                                                 Layout.fillWidth: true
                                                 elide: Text.ElideRight
                                             }
@@ -749,7 +751,7 @@ Rectangle {
                                             Text {
                                                 text: (modelData.artist || "Unknown Artist") + " • " + (modelData.album || "Unknown Album")
                                                 font.pixelSize: 12
-                                                color: "#a0a0a0"
+                                                color: theme.textSecondary
                                                 Layout.fillWidth: true
                                                 elide: Text.ElideRight
                                             }
@@ -760,7 +762,7 @@ Rectangle {
                                             Layout.preferredWidth: 40
                                             Layout.preferredHeight: 40
                                             background: Rectangle {
-                                                color: "#7c3aed"
+                                                color: theme.primary
                                                 radius: 20
                                             }
                                             contentItem: Text {
@@ -800,7 +802,7 @@ Rectangle {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    color: "#252542"
+                    color: theme.surface
                     radius: 12
                     
                     ColumnLayout {
@@ -811,7 +813,7 @@ Rectangle {
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 50
-                            color: "#1a1a2e"
+                            color: theme.background
                             radius: 12
                             
                             Text {
@@ -819,7 +821,7 @@ Rectangle {
                                 text: "Selected (" + addTracksDialog.selectedTracks.length + ")"
                                 font.pixelSize: 16
                                 font.bold: true
-                                color: "#7c3aed"
+                                color: theme.primary
                             }
                         }
                         
@@ -840,7 +842,7 @@ Rectangle {
                                 
                                 Rectangle {
                                     anchors.fill: parent
-                                    color: "#2a2a4a"
+                                    color: theme.surfaceVariant
                                     radius: 8
                                     
                                     RowLayout {
@@ -856,7 +858,7 @@ Rectangle {
                                                 text: modelData.title || "Unknown Track"
                                                 font.pixelSize: 14
                                                 font.bold: true
-                                                color: "#e0e0e0"
+                                                color: theme.textPrimary
                                                 Layout.fillWidth: true
                                                 elide: Text.ElideRight
                                             }
@@ -864,7 +866,7 @@ Rectangle {
                                             Text {
                                                 text: (modelData.artist || "Unknown Artist") + " • " + (modelData.album || "Unknown Album")
                                                 font.pixelSize: 12
-                                                color: "#a0a0a0"
+                                                color: theme.textSecondary
                                                 Layout.fillWidth: true
                                                 elide: Text.ElideRight
                                             }
@@ -922,7 +924,7 @@ Rectangle {
                     Layout.preferredHeight: 50
                     Layout.preferredWidth: 120
                     background: Rectangle {
-                        color: "#4a4a6a"
+                        color: theme.surfaceVariant
                         radius: 25
                     }
                     contentItem: Text {
@@ -947,7 +949,7 @@ Rectangle {
                     Layout.preferredHeight: 50
                     Layout.preferredWidth: 180
                     background: Rectangle {
-                        color: enabled ? "#7c3aed" : "#4a4a6a"
+                        color: enabled ? theme.primary : theme.surfaceVariant
                         radius: 25
                     }
                     contentItem: Text {

@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#1a1a2e"
+    color: theme.background
     property var songs: []
     property string title: ""
     property string subtitle: ""
@@ -34,13 +34,13 @@ Rectangle {
                 Layout.preferredWidth: 40
                 Layout.preferredHeight: 40
                 radius: 8
-                color: "#252542"
+                color: theme.surface
 
                 Text {
                     anchors.centerIn: parent
                     text: "←"
                     font.pixelSize: 20
-                    color: "#e0e0e0"
+                    color: theme.textPrimary
                 }
 
                 MouseArea {
@@ -59,13 +59,13 @@ Rectangle {
                     text: root.title
                     font.pixelSize: 28
                     font.bold: true
-                    color: "#e0e0e0"
+                    color: theme.textPrimary
                 }
 
                 Text {
                     text: root.subtitle
                     font.pixelSize: 14
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                 }
             }
 
@@ -74,7 +74,7 @@ Rectangle {
             Text {
                 text: songs.length + " songs"
                 font.pixelSize: 14
-                color: "#a0a0a0"
+                color: theme.textSecondary
             }
         }
 
@@ -82,7 +82,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
-            color: "#4a4a6a"
+            color: theme.surfaceVariant
         }
 
         // Songs list
@@ -96,7 +96,7 @@ Rectangle {
             delegate: Rectangle {
                 width: ListView.view.width
                 height: 70
-                color: modelData.id == player.currentTrackId ? "#2a2a4a" : "transparent"
+                color: modelData.id == player.currentTrackId ? theme.surfaceVariant : "transparent"
                 radius: 8
 
                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -110,7 +110,7 @@ Rectangle {
                     Text {
                         text: index + 1
                         font.pixelSize: 16
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                         Layout.preferredWidth: 40
                         horizontalAlignment: Text.AlignHCenter
                     }
@@ -124,7 +124,7 @@ Rectangle {
                             text: modelData.title || "Unknown Track"
                             font.pixelSize: 15
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                         }
@@ -132,7 +132,7 @@ Rectangle {
                         Text {
                             text: (modelData.artist || "Unknown Artist") + " • " + (modelData.album || "Unknown Album")
                             font.pixelSize: 13
-                            color: "#a0a0a0"
+                            color: theme.textSecondary
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                         }
@@ -142,7 +142,7 @@ Rectangle {
                     Text {
                         text: formatDuration(modelData.duration || 0)
                         font.pixelSize: 14
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                         Layout.preferredWidth: 60
                         horizontalAlignment: Text.AlignRight
                     }
@@ -152,7 +152,7 @@ Rectangle {
                         Layout.preferredWidth: 35
                         Layout.preferredHeight: 35
                         radius: 17
-                        color: "#7c3aed"
+                        color: theme.primary
 
                         Text {
                             anchors.centerIn: parent
@@ -210,7 +210,7 @@ Rectangle {
                     text: "No songs found"
                     font.pixelSize: 24
                     font.bold: true
-                    color: "#e0e0e0"
+                    color: theme.textPrimary
                     Layout.alignment: Qt.AlignHCenter
                 }
             }

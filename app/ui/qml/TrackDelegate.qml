@@ -12,7 +12,7 @@ Rectangle {
     signal playClicked()
     
     implicitHeight: 60
-    color: "#252542"
+    color: theme.surface
     radius: 8
     
     RowLayout {
@@ -26,7 +26,7 @@ Rectangle {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 40
             radius: 20
-            color: "#7c3aed"
+            color: theme.primary
             
             Text {
                 anchors.centerIn: parent
@@ -51,13 +51,13 @@ Rectangle {
                 text: root.title
                 font.pixelSize: 14
                 font.bold: true
-                color: "#e0e0e0"
+                color: theme.textPrimary
             }
             
             Text {
                 text: root.artist + " • " + root.album
                 font.pixelSize: 12
-                color: "#a0a0a0"
+                color: theme.textSecondary
             }
         }
         
@@ -65,7 +65,7 @@ Rectangle {
         Text {
             text: root.duration
             font.pixelSize: 13
-            color: "#a0a0a0"
+            color: theme.textSecondary
             Layout.preferredWidth: 50
         }
         
@@ -73,7 +73,7 @@ Rectangle {
         Text {
             text: "⋮"
             font.pixelSize: 20
-            color: "#a0a0a0"
+            color: theme.textSecondary
             Layout.preferredWidth: 30
         }
     }
@@ -82,7 +82,7 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         
-        onEntered: root.color = "#2a2a52"
-        onExited: root.color = "#252542"
+        onEntered: root.color = theme.surfaceVariant
+        onExited: root.color = theme.surface
     }
 }

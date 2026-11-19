@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#1a1a2e"
+    color: theme.background
     property int trackCount: libraryManager ? libraryManager.trackCount : 0
     property int albumCount: libraryManager ? libraryManager.albumCount : 0
     property int artistCount: libraryManager ? libraryManager.artistCount : 0
@@ -57,7 +57,7 @@ Rectangle {
                 text: "Library"
                 font.pixelSize: 32
                 font.bold: true
-                color: "#e0e0e0"
+                color: theme.textPrimary
             }
 
             Item { Layout.fillWidth: true }
@@ -69,43 +69,43 @@ Rectangle {
                 Text {
                     text: trackCount + " Tracks"
                     font.pixelSize: 13
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                 }
 
                 Text {
                     text: "•"
                     font.pixelSize: 13
-                    color: "#4a4a6a"
+                    color: theme.surfaceVariant
                 }
 
                 Text {
                     text: albumCount + " Albums"
                     font.pixelSize: 13
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                 }
 
                 Text {
                     text: "•"
                     font.pixelSize: 13
-                    color: "#4a4a6a"
+                    color: theme.surfaceVariant
                 }
 
                 Text {
                     text: artistCount + " Artists"
                     font.pixelSize: 13
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                 }
 
                 Text {
                     text: "•"
                     font.pixelSize: 13
-                    color: "#4a4a6a"
+                    color: theme.surfaceVariant
                 }
 
                 Text {
                     text: totalDuration
                     font.pixelSize: 13
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                 }
             }
         }
@@ -114,7 +114,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
-            color: "#4a4a6a"
+            color: theme.surfaceVariant
         }
 
         // Empty state
@@ -140,7 +140,7 @@ Rectangle {
                     text: "No music in library"
                     font.pixelSize: 24
                     font.bold: true
-                    color: "#e0e0e0"
+                    color: theme.textPrimary
                     Layout.alignment: Qt.AlignHCenter
                 }
                 
@@ -148,7 +148,7 @@ Rectangle {
                 Text {
                     text: "Add your music folders in Settings to get started"
                     font.pixelSize: 14
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                     Layout.alignment: Qt.AlignHCenter
                 }
                 
@@ -169,7 +169,7 @@ Rectangle {
                     }
                     
                     background: Rectangle {
-                        color: parent.hovered ? "#7c3aed" : "#6366f1"
+                        color: parent.hovered ? theme.primary : "#6366f1"
                         radius: 20
                     }
                     
@@ -195,7 +195,7 @@ Rectangle {
                 id: card
                 width: ListView.view.width
                 height: 100
-                color: "#252542"
+                color: theme.surface
                 radius: 12
 
                 // 3D shadow effect
@@ -225,8 +225,8 @@ Rectangle {
                             Layout.preferredHeight: 60
                             radius: 8
                             gradient: Gradient {
-                                GradientStop { position: 0.0; color: modelData.type === "artist" ? "#ec4899" : "#8b5cf6" }
-                                GradientStop { position: 1.0; color: modelData.type === "artist" ? "#be185d" : "#7c3aed" }
+                                GradientStop { position: 0.0; color: modelData.type === "artist" ? "#ec4899" : theme.primaryLight }
+                                GradientStop { position: 1.0; color: modelData.type === "artist" ? "#be185d" : theme.primary }
                             }
 
                             Text {
@@ -261,7 +261,7 @@ Rectangle {
                                 text: modelData.name || "Unknown"
                                 font.pixelSize: 16
                                 font.bold: true
-                                color: "#e0e0e0"
+                                color: theme.textPrimary
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                             }
@@ -271,7 +271,7 @@ Rectangle {
                                        (modelData.album_count + " Albums") :
                                        modelData.artist
                                 font.pixelSize: 13
-                                color: "#a0a0a0"
+                                color: theme.textSecondary
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                             }
@@ -279,7 +279,7 @@ Rectangle {
                             Text {
                                 text: modelData.track_count + " tracks • " + formatDuration(modelData.total_duration || 0)
                                 font.pixelSize: 12
-                                color: "#7c3aed"
+                                color: theme.primary
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                             }
@@ -290,7 +290,7 @@ Rectangle {
                             Layout.preferredWidth: 35
                             Layout.preferredHeight: 35
                             radius: 17
-                            color: "#7c3aed"
+                            color: theme.primary
 
                             Text {
                                 anchors.centerIn: parent

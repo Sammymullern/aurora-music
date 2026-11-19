@@ -10,9 +10,9 @@ Rectangle {
     clip: true
 
     gradient: Gradient {
-        GradientStop { position: 0.0; color: "#15152e" }
-        GradientStop { position: 0.4; color: "#0f0f24" }
-        GradientStop { position: 1.0; color: "#0b0b1e" }
+        GradientStop { position: 0.0; color: theme.backgroundDark }
+        GradientStop { position: 0.4; color: theme.background }
+        GradientStop { position: 1.0; color: theme.backgroundDark }
     }
 
     Rectangle {
@@ -20,8 +20,8 @@ Rectangle {
         anchors { left: parent.left; right: parent.right; top: parent.top }
         height: 2
         gradient: Gradient {
-            GradientStop { position: 0.00; color: "#7c3aed" }
-            GradientStop { position: 0.50; color: "#8b5cf6" }
+            GradientStop { position: 0.00; color: theme.primary }
+            GradientStop { position: 0.50; color: theme.primaryLight }
             GradientStop { position: 1.00; color: "#10b981" }
         }
     }

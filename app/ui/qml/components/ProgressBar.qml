@@ -9,7 +9,7 @@ Rectangle {
     
     height: 6
     radius: 3
-    color: "#1e293b"
+    color: theme.surfaceVariant
     
     Rectangle {
         id: progress
@@ -18,7 +18,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width * root.value
         radius: parent.radius
-        color: "#10b981"
+        color: theme.primary
         
         Behavior on width {
             NumberAnimation { duration: 100 }
@@ -32,7 +32,7 @@ Rectangle {
         width: 12
         height: 12
         radius: 6
-        color: "#10b981"
+        color: theme.primary
         visible: root.isHovered || root.isDragging
         
         Behavior on x {

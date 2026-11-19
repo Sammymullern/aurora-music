@@ -10,7 +10,7 @@ Rectangle {
     implicitWidth: parent.width
     implicitHeight: sectionColumn.height + 40
     radius: 12
-    color: "#252542"
+    color: theme.surface
     
     ColumnLayout {
         id: sectionColumn
@@ -22,7 +22,7 @@ Rectangle {
             text: root.title
             font.pixelSize: 20
             font.bold: true
-            color: "#e0e0e0"
+            color: theme.textPrimary
         }
         
         Item { Layout.preferredHeight: 10 }

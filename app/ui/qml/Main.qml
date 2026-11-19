@@ -10,11 +10,11 @@ ApplicationWindow {
     height: 900
     minimumWidth: 1050
     minimumHeight: 680
-    color: "#1a1a2e"
+    color: theme.background
     title: "Aurora Music"
 
-    property color glassColor: "#252542"
-    property color glassBorder: "#3a3a5c"
+    property color glassColor: theme.surface
+    property color glassBorder: theme.border
     property real glassOpacity: 0.7
 
     property bool showNowPlaying: false
@@ -41,7 +41,7 @@ ApplicationWindow {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                color: "#1a1a2e"
+                color: theme.background
 
                 ColumnLayout {
                     anchors.fill: parent

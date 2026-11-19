@@ -4,13 +4,53 @@ Handles application settings persistence and logic
 """
 import os
 import json
+import urllib.request
+import urllib.error
+import re
 from pathlib import Path
-from PySide6.QtCore import QObject, Signal, Property, Slot
+from PySide6.QtCore import QObject, Signal, Property, Slot, QRunnable, QThreadPool, QProcess
 from PySide6.QtWidgets import QApplication, QFileDialog
-from PySide6.QtDBus import QDBusMessage, QDBusConnection
+try:
+    from PySide6.QtDBus import QDBusMessage, QDBusConnection
+except ImportError:
+    QDBusMessage = QDBusConnection = None
 
 from app.database.session import db
 from app.library.scanner import LibraryScanner
+
+
+class _UpdateSignals(QObject):
+    finished = Signal(str)
+
+
+class _UpdateCheck(QRunnable):
+    def __init__(self):
+        super().__init__()
+        self.signals = _UpdateSignals()
+
+    def run(self):
+        request = urllib.request.Request(
+            "https://api.github.com/repos/sammymullern/aurora-music/releases/latest",
+            headers={"Accept": "application/vnd.github+json", "User-Agent": "Aurora-Music"},
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=8) as response:
+                release = json.load(response)
+            tag = release.get("tag_name", "").lstrip("v")
+            if not tag:
+                result = "No published release was found."
+            elif self._version(tag) > self._version("0.1.0"):
+                result = f"Aurora Music {tag} is available."
+            else:
+                result = "You’re running the latest release."
+        except (urllib.error.URLError, TimeoutError, ValueError, OSError):
+            result = "Could not check for updates. Check your internet connection and try again."
+        self.signals.finished.emit(result)
+
+    @staticmethod
+    def _version(value):
+        match = re.match(r"^(\d+)\.(\d+)\.(\d+)", value)
+        return tuple(map(int, match.groups())) if match else (0, 0, 0)
 
 
 class SettingsManager(QObject):
@@ -29,6 +69,8 @@ class SettingsManager(QObject):
     watchFoldersAutomaticallyChanged = Signal()
     scanFrequencyChanged = Signal()
     libraryStatsChanged = Signal()
+    themeChanged = Signal()
+    updateStatusChanged = Signal()
     
     def __init__(self):
         super().__init__()
@@ -36,6 +78,7 @@ class SettingsManager(QObject):
         self._ensure_settings_dir()
         self._load_settings()
         self._scanner = None
+        self._update_status = ""
     
     def _ensure_settings_dir(self):
         """Ensure settings directory exists"""
@@ -58,7 +101,7 @@ class SettingsManager(QObject):
             "audio_backend": "MPV (Recommended)",
             "output_device": "Default",
             "buffer_size": 512,
-            "theme": "Dark",
+            "theme": "Light",
             "animated_backgrounds": False
         }
         
@@ -204,6 +247,28 @@ class SettingsManager(QObject):
             self.scanFrequencyChanged.emit()
     
     scanFrequency = Property(str, get_scan_frequency, set_scan_frequency, notify=scanFrequencyChanged)
+
+    def get_theme(self):
+        return self._settings.get("theme", "Light")
+
+    def set_theme(self, value):
+        if value not in {"Light", "Dark", "Midnight", "Aurora"}:
+            return
+        if self._settings.get("theme") != value:
+            self._settings["theme"] = value
+            self._save_settings()
+            self.themeChanged.emit()
+
+    theme = Property(str, get_theme, set_theme, notify=themeChanged)
+
+    def get_update_status(self):
+        return self._update_status
+
+    updateStatus = Property(str, get_update_status, notify=updateStatusChanged)
+
+    def _set_update_status(self, status):
+        self._update_status = status
+        self.updateStatusChanged.emit()
     
     # Library statistics
     def get_library_stats(self):
@@ -373,10 +438,13 @@ Categories=Audio;Music;Player;
     
     @Slot()
     def checkForUpdates(self):
-        """Check for application updates"""
-        # Placeholder for update checking logic
-        print("Checking for updates...")
-        # TODO: Implement actual update checking
+        """Check GitHub for the latest published release without blocking the UI."""
+        self._set_update_status("Checking for updates…")
+        worker = _UpdateCheck()
+        worker.signals.finished.connect(self._set_update_status)
+        # Retain the worker while it is running so its signal object stays alive.
+        self._update_worker = worker
+        QThreadPool.globalInstance().start(worker)
     
     @Slot(str, str, str)
     def showNotification(self, title, message, icon=""):
@@ -385,18 +453,21 @@ Categories=Audio;Music;Player;
             return
         
         try:
+            if QDBusConnection is None:
+                QProcess.startDetached("notify-send", [title, message])
+                return
             bus = QDBusConnection.sessionBus()
             if not bus.isConnected():
                 return
             
-            message = QDBusMessage.createMethodCall(
+            dbus_message = QDBusMessage.createMethodCall(
                 "org.freedesktop.Notifications",
                 "/org/freedesktop/Notifications",
                 "org.freedesktop.Notifications",
                 "Notify"
             )
             
-            message.setArguments([
+            dbus_message.setArguments([
                 "Aurora Music",  # app_name
                 0,  # replaces_id
                 icon,  # app_icon
@@ -407,7 +478,7 @@ Categories=Audio;Music;Player;
                 5000  # timeout in ms
             ])
             
-            bus.call(message)
+            bus.call(dbus_message)
         except Exception:
             pass
     

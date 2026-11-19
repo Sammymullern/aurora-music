@@ -89,13 +89,13 @@ Item {
             id: frameRect
             anchors.fill: parent
             radius: parent.width * 0.06
-            color: "#2a2a52"
-            border { color: "#7c3aed"; width: 1.5 }
+            color: theme.surfaceVariant
+            border { color: theme.primary; width: 1.5 }
             clip: true
 
             gradient: Gradient {
                 GradientStop { position: 0.0; color: "#4c1d95" }
-                GradientStop { position: 0.5; color: "#5b21b6" }
+                GradientStop { position: 0.5; color: theme.primaryDark }
                 GradientStop { position: 1.0; color: "#047857" }
             }
 
@@ -155,9 +155,9 @@ Item {
         width: pauseText.contentWidth + 30
         height: 36
         radius: 18
-        color: "#12122a"
+        color: theme.surfaceVariant
         opacity: root.isPaused && root.hasTrack ? 0.96 : 0
-        border.color: "#7c3aed"
+        border.color: theme.primary
         border.width: 1.2
         visible: opacity > 0
 

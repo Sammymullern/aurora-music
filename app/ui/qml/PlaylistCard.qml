@@ -14,7 +14,7 @@ Rectangle {
     implicitWidth: 190
     implicitHeight: 240
     radius: 12
-    color: "#252542"
+    color: theme.surface
     
     Column {
         anchors.fill: parent
@@ -28,7 +28,7 @@ Rectangle {
             radius: 8
             gradient: Gradient {
                 GradientStop { position: 0.0; color: "#ec4899" }
-                GradientStop { position: 1.0; color: "#8b5cf6" }
+                GradientStop { position: 1.0; color: theme.primaryLight }
             }
             
             Text {
@@ -42,7 +42,7 @@ Rectangle {
             text: root.name
             font.pixelSize: 14
             font.bold: true
-            color: "#e0e0e0"
+            color: theme.textPrimary
             width: parent.width
             elide: Text.ElideRight
         }
@@ -50,7 +50,7 @@ Rectangle {
         Text {
             text: root.trackCount + " tracks"
             font.pixelSize: 12
-            color: "#a0a0a0"
+            color: theme.textSecondary
         }
     }
     
@@ -63,12 +63,12 @@ Rectangle {
         height: 32
         z: 2
         background: Rectangle {
-            color: parent.hovered ? "#3a3a6a" : "#2a2a4a"
+            color: parent.hovered ? theme.border : theme.surfaceVariant
             radius: 16
         }
         contentItem: Text {
             text: "⋮"
-            color: "#e0e0e0"
+            color: theme.textPrimary
             font.pixelSize: 18
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -83,8 +83,8 @@ Rectangle {
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         
-        onEntered: root.color = "#2a2a52"
-        onExited: root.color = "#252542"
+        onEntered: root.color = theme.surfaceVariant
+        onExited: root.color = theme.surface
         
         onClicked: function(mouse) {
             if (mouse.button === Qt.LeftButton) {
@@ -101,9 +101,9 @@ Rectangle {
         id: contextMenu
         width: 150
         background: Rectangle {
-            color: "#252542"
+            color: theme.surface
             radius: 8
-            border.color: "#7c3aed"
+            border.color: theme.primary
             border.width: 1
         }
         
@@ -112,13 +112,13 @@ Rectangle {
             height: 40
             contentItem: Text {
                 text: parent.text
-                color: "#e0e0e0"
+                color: theme.textPrimary
                 font.pixelSize: 13
                 verticalAlignment: Text.AlignVCenter
                 leftPadding: 15
             }
             background: Rectangle {
-                color: parent.hovered ? "#2a2a4a" : "transparent"
+                color: parent.hovered ? theme.surfaceVariant : "transparent"
                 radius: 4
             }
             onTriggered: root.editRequested()
@@ -137,7 +137,7 @@ Rectangle {
                 leftPadding: 15
             }
             background: Rectangle {
-                color: parent.hovered ? "#2a2a4a" : "transparent"
+                color: parent.hovered ? theme.surfaceVariant : "transparent"
                 radius: 4
             }
             onTriggered: root.deleteRequested()

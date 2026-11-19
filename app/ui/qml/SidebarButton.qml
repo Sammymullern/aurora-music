@@ -12,8 +12,8 @@ Rectangle {
     signal clicked()
 
     color: {
-        if (isActive) return "#221845"
-        if (ma.containsMouse) return "#1d1d3a"
+        if (isActive) return theme.surfaceVariant
+        if (ma.containsMouse) return theme.backgroundLight
         return "transparent"
     }
     radius: 8
@@ -24,8 +24,8 @@ Rectangle {
         width: root.isActive ? 4 : 0
         radius: 8
         gradient: Gradient {
-            GradientStop { position: 0.0; color: "#3d2a5c" }
-            GradientStop { position: 1.0; color: "#1a1030" }
+            GradientStop { position: 0.0; color: theme.primaryLight }
+            GradientStop { position: 1.0; color: theme.primaryDark }
         }
         Behavior on width { NumberAnimation { duration: 180 } }
     }
@@ -37,7 +37,7 @@ Rectangle {
         radius: 2
         gradient: Gradient {
             GradientStop { position: 0.0; color: "#a78bfa" }
-            GradientStop { position: 1.0; color: "#7c3aed" }
+            GradientStop { position: 1.0; color: theme.primary }
         }
         Behavior on width { NumberAnimation { duration: 180 } }
     }
@@ -62,7 +62,7 @@ Rectangle {
             text: root.text
             font.pixelSize: 13
             font.weight: root.isActive ? Font.DemiBold : Font.Medium
-            color: root.isActive ? "#ffffff" : "#b8b8d8"
+            color: root.isActive ? "#ffffff" : theme.textSecondary
             Behavior on color { ColorAnimation { duration: 150 } }
         }
     }

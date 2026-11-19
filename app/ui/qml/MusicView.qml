@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#1a1a2e"
+    color: theme.background
 
     function formatDuration(seconds) {
         if (seconds === null || seconds === undefined) return "0:00"
@@ -35,7 +35,7 @@ Rectangle {
                 text: "Music"
                 font.pixelSize: 28
                 font.bold: true
-                color: "#ffffff"
+                color: theme.textPrimary
             }
 
             Item { Layout.fillWidth: true }
@@ -44,9 +44,9 @@ Rectangle {
                 Layout.preferredWidth: 440
                 Layout.minimumWidth: 280
                 Layout.preferredHeight: 38
-                color: "#252542"
+                color: theme.surface
                 radius: 10
-                border.color: "#3a3a5c"
+                border.color: theme.border
                 border.width: 1
 
                 RowLayout {
@@ -65,8 +65,8 @@ Rectangle {
                         Layout.fillWidth: true
                         placeholderText: "Search songs, artists, albums..."
                         font.pixelSize: 13
-                        color: "#ffffff"
-                        selectionColor: "#7c3aed"
+                        color: theme.textPrimary
+                        selectionColor: theme.primary
                         placeholderTextColor: "#606088"
                         background: Item { }
                         onTextChanged: {
@@ -84,15 +84,15 @@ Rectangle {
                 font.pixelSize: 13
 
                 background: Rectangle {
-                    color: "#252542"
+                    color: theme.surface
                     radius: 10
-                    border.color: "#3a3a5c"
+                    border.color: theme.border
                     border.width: 1
                 }
 
                 contentItem: Text {
                     text: parent.displayText
-                    color: "#ffffff"
+                    color: theme.textPrimary
                     font.pixelSize: 13
                     verticalAlignment: Text.AlignVCenter
                     leftPadding: 14
@@ -107,7 +107,7 @@ Rectangle {
                     contextType: "2d"
                     onPaint: {
                         var ctx = getContext("2d")
-                        ctx.fillStyle = "#a0a0c0"
+                        ctx.fillStyle = theme.textSecondary
                         ctx.beginPath()
                         ctx.moveTo(0, 0)
                         ctx.lineTo(10, 0)
@@ -122,7 +122,7 @@ Rectangle {
                 spacing: 8
                 Rectangle {
                     width: 36; height: 36; radius: 8
-                    color: "#7c3aed"
+                    color: theme.primary
                     Text {
                         anchors.centerIn: parent
                         text: "▢"; font.pixelSize: 15; color: "white"
@@ -130,11 +130,11 @@ Rectangle {
                 }
                 Rectangle {
                     width: 36; height: 36; radius: 8
-                    color: "#252542"
-                    border.color: "#3a3a5c"; border.width: 1
+                    color: theme.surface
+                    border.color: theme.border; border.width: 1
                     Text {
                         anchors.centerIn: parent
-                        text: "☰"; font.pixelSize: 15; color: "#a0a0c0"
+                        text: "☰"; font.pixelSize: 15; color: theme.textSecondary
                     }
                 }
             }
@@ -174,17 +174,17 @@ Rectangle {
 
                     // ===== Layered visuals: base bg + outer halo on active =====
                     color: {
-                        if (active) return "#1a1139"
-                        if (isHovered) return "#232345"
-                        return "#1f1f40"
+                        if (active) return theme.primary
+                        if (isHovered) return theme.surfaceVariant
+                        return theme.surface
                     }
 
                     border {
                         width: active ? 0 : 1
                         color: {
-                            if (active) return "#7c3aed"
-                            if (isHovered) return "#6040a0"
-                            return "#2e2e52"
+                            if (active) return theme.primary
+                            if (isHovered) return theme.primaryLight
+                            return theme.surfaceVariant
                         }
                     }
 
@@ -193,8 +193,8 @@ Rectangle {
                         anchors.fill: parent
                         radius: parent.radius
                         gradient: Gradient {
-                            GradientStop { position: 0.0; color: "#7c3aed" }
-                            GradientStop { position: 1.0; color: "#5b21b6" }
+                            GradientStop { position: 0.0; color: theme.primary }
+                            GradientStop { position: 1.0; color: theme.primaryDark }
                         }
                         opacity: chip.active ? 1.0 : 0.0
                         Behavior on opacity { NumberAnimation { duration: 180 } }
@@ -207,7 +207,7 @@ Rectangle {
                         width: parent.width + 10
                         height: parent.height + 10
                         radius: width / 2
-                        color: "#7c3aed"
+                        color: theme.primary
                         opacity: chip.active ? 0.18 : (chip.isHovered ? 0.08 : 0.0)
                         Behavior on opacity { NumberAnimation { duration: 180 } }
                     }
@@ -233,7 +233,7 @@ Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
                             text: chip.chipIcon
                             font.pixelSize: chip.active ? 14 : 13
-                            color: chip.active ? "#ffffff" : (chip.isHovered ? "#a78bfa" : "#7878a8")
+                            color: chip.active ? "#ffffff" : (chip.isHovered ? theme.primary : theme.textSecondary)
                             Behavior on color { ColorAnimation { duration: 150 } }
                         }
 
@@ -244,7 +244,7 @@ Rectangle {
                             font.pixelSize: 12
                             font.weight: chip.active ? Font.DemiBold : Font.Medium
                             font.letterSpacing: chip.active ? 0.4 : 0
-                            color: chip.active ? "#ffffff" : (chip.isHovered ? "#e0e0ff" : "#a0a0c0")
+                            color: chip.active ? "#ffffff" : (chip.isHovered ? theme.primary : theme.textSecondary)
                             Behavior on color { ColorAnimation { duration: 150 } }
                         }
                     }
@@ -282,7 +282,7 @@ Rectangle {
                 text: musicManager ? "Songs (" + musicManager.songCount + ")" : "Songs (0)"
                 font.pixelSize: 14
                 font.bold: true
-                color: "#e0e0f0"
+                color: theme.textPrimary
             }
 
             Item { Layout.fillWidth: true }
@@ -299,9 +299,9 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.minimumHeight: 180
-            color: "#20203d"
+            color: theme.backgroundLight
             radius: 12
-            border.color: "#2e2e52"
+            border.color: theme.surfaceVariant
             border.width: 1
             clip: true
 
@@ -313,7 +313,7 @@ Rectangle {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 44
-                    color: "#26264a"
+                    color: theme.backgroundLight
 
                     RowLayout {
                         anchors.fill: parent
@@ -327,7 +327,7 @@ Rectangle {
                             font.pixelSize: 11
                             font.letterSpacing: 1
                             font.bold: true
-                            color: "#7878a8"
+                            color: theme.textSecondary
                         }
 
                         Text {
@@ -337,7 +337,7 @@ Rectangle {
                             font.pixelSize: 11
                             font.letterSpacing: 1
                             font.bold: true
-                            color: "#7878a8"
+                            color: theme.textSecondary
                         }
 
                         Text {
@@ -346,7 +346,7 @@ Rectangle {
                             font.pixelSize: 11
                             font.letterSpacing: 1
                             font.bold: true
-                            color: "#7878a8"
+                            color: theme.textSecondary
                         }
 
                         Text {
@@ -355,14 +355,14 @@ Rectangle {
                             font.pixelSize: 11
                             font.letterSpacing: 1
                             font.bold: true
-                            color: "#7878a8"
+                            color: theme.textSecondary
                         }
 
                         Text {
                             Layout.preferredWidth: 84
                             text: "⏱"
                             font.pixelSize: 12
-                            color: "#7878a8"
+                            color: theme.textSecondary
                             horizontalAlignment: Text.AlignRight
                         }
 
@@ -374,7 +374,7 @@ Rectangle {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 1
-                    color: "#2e2e52"
+                    color: theme.surfaceVariant
                 }
 
                 // Scrollable rows (takes the rest — CRITICAL: must have Layout.fillHeight: true to clip+scroll)
@@ -385,9 +385,9 @@ Rectangle {
                     clip: true
                     ScrollBar.vertical.policy: ScrollBar.AlwaysOn
                     ScrollBar.vertical.width: 6
-                    ScrollBar.vertical.background: Rectangle { color: "#1a1a32" }
+                    ScrollBar.vertical.background: Rectangle { color: theme.background }
                     ScrollBar.vertical.contentItem: Rectangle {
-                        color: "#4a4a78"
+                        color: theme.border
                         radius: 3
                         implicitWidth: 6
                     }
@@ -410,14 +410,14 @@ Rectangle {
                                     Layout.alignment: Qt.AlignHCenter
                                     text: "🎵"
                                     font.pixelSize: 56
-                                    color: "#3a3a5c"
+                                    color: theme.border
                                 }
 
                                 Text {
                                     Layout.alignment: Qt.AlignHCenter
                                     text: "No songs found"
                                     font.pixelSize: 17
-                                    color: "#a0a0c0"
+                                    color: theme.textSecondary
                                 }
 
                                 Text {
@@ -435,7 +435,7 @@ Rectangle {
                             delegate: Rectangle {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 50
-                                color: (index % 2 === 0) ? "#20203d" : "#232344"
+                                color: (index % 2 === 0) ? theme.surface : theme.backgroundLight
                                 property bool isHovered: false
                                 readonly property bool _safePlayerReady: Boolean(player)
                                 readonly property string _safeTrackTitle: _safePlayerReady ? String(player.currentTitle || "") : ""
@@ -452,7 +452,7 @@ Rectangle {
                                         Layout.preferredWidth: 40
                                         text: parent.isActive ? "♪" : (index + 1)
                                         font.pixelSize: 13
-                                        color: parent.isActive ? "#7c3aed" : "#606090"
+                                        color: parent.isActive ? theme.primary : "#606090"
                                         font.bold: parent.isActive ? true : false
                                     }
 
@@ -461,7 +461,7 @@ Rectangle {
                                         Layout.minimumWidth: 200
                                         text: modelData.title || "Unknown"
                                         font.pixelSize: 13
-                                        color: parent.isActive ? "#a78bfa" : "#ffffff"
+                                    color: parent.isActive ? theme.primary : theme.textPrimary
                                         font.bold: parent.isActive ? true : false
                                         elide: Text.ElideRight
                                     }
@@ -470,7 +470,7 @@ Rectangle {
                                         Layout.preferredWidth: 220
                                         text: modelData.artist || "Unknown"
                                         font.pixelSize: 13
-                                        color: "#a0a0c0"
+                                        color: theme.textSecondary
                                         elide: Text.ElideRight
                                     }
 
@@ -478,7 +478,7 @@ Rectangle {
                                         Layout.preferredWidth: 220
                                         text: modelData.album || "Unknown"
                                         font.pixelSize: 13
-                                        color: "#a0a0c0"
+                                        color: theme.textSecondary
                                         elide: Text.ElideRight
                                     }
 
@@ -486,7 +486,7 @@ Rectangle {
                                         Layout.preferredWidth: 84
                                         text: root.formatDuration(modelData.duration)
                                         font.pixelSize: 13
-                                        color: "#7878a8"
+                                        color: theme.textSecondary
                                         horizontalAlignment: Text.AlignRight
                                     }
 
@@ -521,11 +521,11 @@ Rectangle {
                                     cursorShape: Qt.PointingHandCursor
                                     onEntered: {
                                         parent.isHovered = true
-                                        parent.color = parent.isActive ? "#2d2458" : ((index % 2 === 0) ? "#272748" : "#2a2a50")
+                                        parent.color = parent.isActive ? theme.surfaceVariant : theme.surfaceVariant
                                     }
                                     onExited: {
                                         parent.isHovered = false
-                                        parent.color = parent.isActive ? "#2a2050" : ((index % 2 === 0) ? "#20203d" : "#232344")
+                                        parent.color = parent.isActive ? theme.surfaceVariant : ((index % 2 === 0) ? theme.surface : theme.backgroundLight)
                                     }
                                     onClicked: {
                                         if (musicManager) musicManager.playSong(modelData.id)

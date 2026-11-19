@@ -12,14 +12,14 @@ RowLayout {
 
     signal volumeValueChanged(int volume)
 
-    readonly property color slateBg:     "#1f1f3c"
-    readonly property color slateBorder: "#32325a"
-    readonly property color hoverBg:     "#2a2a52"
-    readonly property color purple:      "#7c3aed"
-    readonly property color purpleSoft:  "#a78bfa"
+    readonly property color slateBg:     theme.primaryDark
+    readonly property color slateBorder: theme.primary
+    readonly property color hoverBg:     theme.surfaceVariant
+    readonly property color purple:      theme.primary
+    readonly property color purpleSoft:  theme.primaryLight
     readonly property color green:       "#10b981"
     readonly property color greenHi:     "#34d399"
-    readonly property color iconMuted:   "#b8b8d8"
+    readonly property color iconMuted:   theme.textSecondary
 
     readonly property real fraction: Math.max(0, Math.min(1, root.volume / 100))
     readonly property bool hoverOrDrag: volMA.containsMouse || volMA.dragging
@@ -93,8 +93,8 @@ RowLayout {
             anchors.right: parent.right
             height: root.hoverOrDrag ? 8 : 6
             radius: height / 2
-            color: "#202040"
-            border { color: "#2c2c52"; width: 1 }
+            color: theme.surfaceVariant
+            border { color: theme.border; width: 1 }
 
             Rectangle {
                 id: volFill

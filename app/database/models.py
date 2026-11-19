@@ -2,13 +2,18 @@
 SQLAlchemy database models for Aurora Music
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 from sqlalchemy import (
     Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+
+def utcnow_naive() -> datetime:
+    """Return UTC time in the naive form used by the existing SQLite columns."""
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class Base(DeclarativeBase):
@@ -29,8 +34,8 @@ class Artist(Base):
     tracks: Mapped[list["Track"]] = relationship(back_populates="artist", cascade="all, delete-orphan")
     albums: Mapped[list["Album"]] = relationship(back_populates="artist", cascade="all, delete-orphan")
     
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
 
 
 class Album(Base):
@@ -51,8 +56,8 @@ class Album(Base):
     artist: Mapped[Optional["Artist"]] = relationship(back_populates="albums")
     tracks: Mapped[list["Track"]] = relationship(back_populates="album", cascade="all, delete-orphan")
     
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
     
     __table_args__ = (UniqueConstraint("title", "artist_id", name="unique_album_artist"),)
 
@@ -120,9 +125,9 @@ class Track(Base):
     album: Mapped[Optional["Album"]] = relationship(back_populates="tracks")
     
     # Timestamps
-    added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    modified_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    scanned_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    added_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    modified_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
+    scanned_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
 
 
 class Playlist(Base):
@@ -138,8 +143,8 @@ class Playlist(Base):
         back_populates="playlist", cascade="all, delete-orphan", order_by="PlaylistTrack.position"
     )
     
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive)
 
 
 class PlaylistTrack(Base):
@@ -155,6 +160,6 @@ class PlaylistTrack(Base):
     playlist: Mapped["Playlist"] = relationship(back_populates="tracks")
     track: Mapped["Track"] = relationship()
     
-    added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    added_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive)
     
     __table_args__ = (UniqueConstraint("playlist_id", "track_id", name="unique_playlist_track"),)

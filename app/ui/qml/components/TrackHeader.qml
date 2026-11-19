@@ -50,7 +50,7 @@ ColumnLayout {
             Layout.preferredHeight: root.artistPx * 0.72
             radius: 1.5
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#7c3aed" }
+                GradientStop { position: 0.0; color: theme.primary }
                 GradientStop { position: 1.0; color: "#10b981" }
             }
             opacity: 0.9
@@ -74,7 +74,7 @@ ColumnLayout {
         Layout.maximumWidth: miniMode ? Number.MAX_VALUE : 600
         text: root.album
         font.pixelSize: root.albumPx
-        color: "#8a8ab0"
+        color: theme.textSecondary
         elide: Text.ElideRight
         opacity: 0.88
         visible: root.album && root.album.length > 0 && root.album !== "Unknown"

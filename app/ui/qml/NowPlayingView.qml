@@ -5,7 +5,7 @@ import "./components"
 
 Rectangle {
     id: root
-    color: "#0d0d1f"
+    color: theme.background
 
     property bool isPlaying: player ? player.isPlaying : false
     property bool isPaused: player ? player.isPaused : true
@@ -73,19 +73,19 @@ Rectangle {
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.00; color: "#a0141433" }
-            GradientStop { position: 0.35; color: "#b80f0f28" }
-            GradientStop { position: 0.75; color: "#c810102a" }
-            GradientStop { position: 1.00; color: "#d00a0a1e" }
+            GradientStop { position: 0.00; color: "#0c000000" }
+            GradientStop { position: 0.35; color: "#08000000" }
+            GradientStop { position: 0.75; color: "#08000000" }
+            GradientStop { position: 1.00; color: "#14000000" }
         }
     }
 
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.00; color: "#300d0d1f" }
+            GradientStop { position: 0.00; color: "#08000000" }
             GradientStop { position: 0.50; color: "#00000000" }
-            GradientStop { position: 1.00; color: "#500a0a1e" }
+            GradientStop { position: 1.00; color: "#10000000" }
         }
     }
 
@@ -106,8 +106,8 @@ Rectangle {
                 Layout.preferredHeight: 46
                 Layout.alignment: Qt.AlignVCenter
                 radius: 23
-                color: "#2a2a42"
-                border.color: "#3f3f68"
+                color: theme.surfaceVariant
+                border.color: theme.surfaceVariant
                 border.width: 1
                 opacity: 0.92
 
@@ -116,15 +116,15 @@ Rectangle {
                     text: "‹"
                     font.pixelSize: 28
                     font.bold: true
-                    color: "#f0f0ff"
+                    color: theme.textPrimary
                 }
 
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onEntered: { backBtn.color = "#38385c"; backBtn.border.color = "#7c3aed" }
-                    onExited: { backBtn.color = "#2a2a42"; backBtn.border.color = "#3f3f68" }
+                    onEntered: { backBtn.color = theme.surfaceVariant; backBtn.border.color = theme.primary }
+                    onExited: { backBtn.color = theme.surfaceVariant; backBtn.border.color = theme.surfaceVariant }
                     onClicked: root.backClicked()
                 }
 
@@ -137,7 +137,7 @@ Rectangle {
                 text: "Now Playing"
                 font.pixelSize: 18
                 font.bold: true
-                color: "#d0d0ee"
+                color: theme.textPrimary
                 font.letterSpacing: 0.4
                 opacity: 0.92
             }
@@ -150,8 +150,8 @@ Rectangle {
                 Layout.preferredHeight: 32
                 Layout.alignment: Qt.AlignVCenter
                 radius: 16
-                color: root.isMiniMode ? "#222244" : "#1d1d3a"
-                border.color: root.isMiniMode ? "#7c3aed" : "#38385c"
+                color: theme.surfaceVariant
+                border.color: root.isMiniMode ? theme.primary : theme.surfaceVariant
                 border.width: 1
                 visible: false
 
@@ -161,7 +161,7 @@ Rectangle {
                     text: root.isMiniMode ? "MINI" : "MAX"
                     font.pixelSize: 10
                     font.bold: true
-                    color: root.isMiniMode ? "#c4b5fd" : "#9090b4"
+                    color: root.isMiniMode ? theme.primaryLight : theme.textSecondary
                     font.letterSpacing: 1.2
                 }
             }
@@ -189,7 +189,7 @@ Rectangle {
             Layout.alignment: Qt.AlignHCenter
             text: "♪"
             font.pixelSize: 120
-            color: "#7c3aed"
+            color: theme.primary
             opacity: 0.55
         }
 
@@ -198,14 +198,14 @@ Rectangle {
             text: "Nothing playing right now"
             font.pixelSize: 24
             font.bold: true
-            color: "#e0e0f5"
+            color: theme.textPrimary
         }
 
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: "Pick a song from your Music library to start listening"
             font.pixelSize: 15
-            color: "#8a8ab0"
+            color: theme.textSecondary
         }
     }
 
@@ -257,8 +257,8 @@ Rectangle {
                         Layout.preferredHeight: 140
                         Layout.minimumHeight: 100
                         radius: 22
-                        color: "#1a1a34"
-                        border.color: "#2e2e50"
+                        color: theme.background
+                        border.color: theme.surfaceVariant
                         border.width: 1
                         opacity: 0.90
 
@@ -292,8 +292,8 @@ Rectangle {
                         Layout.maximumWidth: 720
                         Layout.fillWidth: true
                         radius: 24
-                        color: "#16162e"
-                        border.color: "#2b2b4e"
+                        color: theme.backgroundDark
+                        border.color: theme.surfaceVariant
                         border.width: 1
                         opacity: 0.92
 
@@ -367,8 +367,8 @@ Rectangle {
                 Layout.preferredHeight: 96
                 Layout.minimumHeight: 78
                 radius: 18
-                color: "#1a1a34"
-                border.color: "#2e2e50"
+                color: theme.background
+                border.color: theme.surfaceVariant
                 border.width: 1
                 opacity: 0.90
 
@@ -387,8 +387,8 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 82
                 radius: 20
-                color: "#16162e"
-                border.color: "#2b2b4e"
+                color: theme.backgroundDark
+                border.color: theme.surfaceVariant
                 border.width: 1
                 opacity: 0.92
 

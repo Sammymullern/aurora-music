@@ -8,7 +8,7 @@ from typing import Dict, Optional
 from enum import Enum
 from dataclasses import dataclass
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, Property, Slot
 from PySide6.QtGui import QColor, QPalette
 
 logger = logging.getLogger(__name__)
@@ -150,17 +150,41 @@ class ThemeManager(QObject):
     
     def __init__(self, parent: Optional[QObject] = None):
         super().__init__(parent)
-        self._current_theme = ThemeName.DARK
+        self._current_theme = ThemeName.LIGHT
         self._custom_themes: Dict[str, ThemeColors] = {}
+
+    def _theme_color(self, name: str) -> str:
+        return getattr(self.get_colors(), name)
+
+    primary = Property(str, lambda self: self._theme_color("primary"), notify=theme_changed)
+    primaryLight = Property(str, lambda self: self._theme_color("primary_light"), notify=theme_changed)
+    primaryDark = Property(str, lambda self: self._theme_color("primary_dark"), notify=theme_changed)
+    background = Property(str, lambda self: self._theme_color("background"), notify=theme_changed)
+    backgroundDark = Property(str, lambda self: self._theme_color("background_dark"), notify=theme_changed)
+    backgroundLight = Property(str, lambda self: self._theme_color("background_light"), notify=theme_changed)
+    surface = Property(str, lambda self: self._theme_color("surface"), notify=theme_changed)
+    surfaceVariant = Property(str, lambda self: self._theme_color("surface_variant"), notify=theme_changed)
+    textPrimary = Property(str, lambda self: self._theme_color("text_primary"), notify=theme_changed)
+    textSecondary = Property(str, lambda self: self._theme_color("text_secondary"), notify=theme_changed)
+    textDisabled = Property(str, lambda self: self._theme_color("text_disabled"), notify=theme_changed)
+    accent = Property(str, lambda self: self._theme_color("accent"), notify=theme_changed)
+    accentSecondary = Property(str, lambda self: self._theme_color("accent_secondary"), notify=theme_changed)
+    border = Property(str, lambda self: self._theme_color("border"), notify=theme_changed)
+    borderLight = Property(str, lambda self: self._theme_color("border_light"), notify=theme_changed)
     
-    def set_theme(self, theme: ThemeName) -> bool:
+    @Slot(str, result=bool)
+    def set_theme(self, theme: str | ThemeName) -> bool:
         """Set the current theme"""
-        if theme in self.THEMES:
+        try:
+            theme = theme if isinstance(theme, ThemeName) else ThemeName(theme.lower())
+        except (AttributeError, ValueError):
+            return False
+        if theme in self.THEMES and theme != self._current_theme:
             self._current_theme = theme
             self.theme_changed.emit(theme.value)
             logger.info(f"Theme changed to: {theme.value}")
             return True
-        return False
+        return theme == self._current_theme
     
     def get_current_theme(self) -> ThemeName:
         """Get the current theme"""

@@ -193,7 +193,9 @@ class PlaylistController(QObject):
                     "artist": track.artist.name if track.artist else None,
                     "album": track.album.title if track.album else None,
                     "duration": track.duration,
-                    "file_path": track.file_path
+                    "file_path": track.file_path,
+                    "album_art": track.album.artwork_path if track.album else "",
+                    "favorite": track.favorite
                 })
             return track_list
         except Exception as e:

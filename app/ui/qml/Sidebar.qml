@@ -4,15 +4,15 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#141428"
+    color: theme.backgroundDark
 
     // 3D shadow effect
     Rectangle {
         anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
         width: 8
         gradient: Gradient {
-            GradientStop { position: 0.0; color: "#1a1a35" }
-            GradientStop { position: 1.0; color: "#0f0f20" }
+            GradientStop { position: 0.0; color: theme.backgroundDark }
+            GradientStop { position: 1.0; color: theme.backgroundDark }
         }
     }
 
@@ -21,8 +21,8 @@ Rectangle {
         anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
         width: 1
         gradient: Gradient {
-            GradientStop { position: 0.00; color: "#7c3aed" }
-            GradientStop { position: 0.50; color: "#8b5cf6" }
+            GradientStop { position: 0.00; color: theme.primary }
+            GradientStop { position: 0.50; color: theme.primaryLight }
             GradientStop { position: 1.00; color: "#10b981" }
         }
         opacity: 0.55
@@ -66,12 +66,12 @@ Rectangle {
                         text: "Aurora"
                         font.pixelSize: 18
                         font.bold: true
-                        color: "#ffffff"
+                        color: theme.textPrimary
                     }
                     Text {
                         text: "MUSIC"
                         font.pixelSize: 11
-                        color: "#7c3aed"
+                        color: theme.primary
                         font.letterSpacing: 3
                     }
                 }
@@ -83,7 +83,7 @@ Rectangle {
             Layout.leftMargin: 18
             Layout.rightMargin: 18
             Layout.preferredHeight: 1
-            color: "#2a2a4a"
+            color: theme.surfaceVariant
         }
 
         // ===== NAVIGATE header =====
@@ -99,7 +99,7 @@ Rectangle {
                 text: "NAVIGATE"
                 font.pixelSize: 10
                 font.letterSpacing: 2
-                color: "#5a5a88"
+                color: theme.textSecondary
                 font.bold: true
             }
         }
@@ -157,7 +157,7 @@ Rectangle {
                 text: "SYSTEM"
                 font.pixelSize: 10
                 font.letterSpacing: 2
-                color: "#5a5a88"
+                color: theme.textSecondary
                 font.bold: true
             }
         }

@@ -21,7 +21,7 @@ RowLayout {
         text: formatTime(root.position)
         font.pixelSize: 13
         font.bold: true
-        color: "#ffffff"
+        color: theme.textPrimary
         horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
     }
@@ -42,8 +42,8 @@ RowLayout {
             anchors.right: parent.right
             height: root.hoverOrDrag ? 10 : 8
             radius: height / 2
-            color: "#202040"
-            border { color: "#2c2c52"; width: 1 }
+            color: theme.surfaceVariant
+            border { color: theme.border; width: 1 }
 
             // Filled portion — Aurora purple→green gradient.
             // Disable tween animation during drag to feel responsive.
@@ -53,7 +53,7 @@ RowLayout {
                 width: parent.width * root.fraction
                 radius: parent.radius
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#7c3aed" }   // aurora purple
+                    GradientStop { position: 0.0; color: theme.primary }   // aurora purple
                     GradientStop { position: 1.0; color: "#10b981" }   // aurora green
                 }
                 Behavior on width {
@@ -92,7 +92,7 @@ RowLayout {
                     width: parent.width + 8
                     height: parent.height + 8
                     radius: width / 2
-                    color: "#7c3aed"
+                    color: theme.primary
                     opacity: 0.22
                 }
                 // Green halo (inner)

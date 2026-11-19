@@ -20,7 +20,7 @@ Item {
     Rectangle {
         z: -1
         anchors { left: parent.left; right: parent.right; top: parent.top; bottom: parent.bottom }
-        color: "#2a2a52"
+        color: theme.surfaceVariant
         radius: 10
         opacity: hoverMA.containsMouse ? 0.7 : 0.0
         Behavior on opacity { NumberAnimation { duration: 160 } }
@@ -67,7 +67,7 @@ Item {
                 width: parent.width + 2
                 height: parent.height + 2
                 radius: 14
-                color: "#7c3aed"
+                color: theme.primary
                 opacity: 0.12
             }
 
@@ -76,10 +76,10 @@ Item {
                 anchors.fill: parent
                 radius: 12
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#8b5cf6" }  // aurora purple
+                    GradientStop { position: 0.0; color: theme.primaryLight }  // aurora purple
                     GradientStop { position: 1.0; color: "#10b981" }  // aurora teal-green
                 }
-                border { color: "#3a3a5c"; width: 1 }
+                border { color: theme.border; width: 1 }
                 clip: true
 
                 // User album art, if set (on top of gradient placeholder)
@@ -130,7 +130,7 @@ Item {
                     text: root.title
                     font.pixelSize: 14
                     font.bold: true
-                    color: "#ffffff"
+                    color: theme.textPrimary
                     elide: titleWrap.overflow ? Text.ElideNone : Text.ElideRight
                     width: titleWrap.overflow ? undefined : parent.width
                     clip: false
@@ -206,7 +206,7 @@ Item {
             border {
                 color: root.isFavorite ? "#ef4444"
                      : (favMA.containsMouse ? "#a78bfa"   // hover → purple
-                                             : "#3a3a5c")  // idle → muted
+                                             : theme.border)  // idle → muted
                 width: 1.4
             }
             scale: favMA.pressed ? 0.9 : (favMA.containsMouse ? 1.05 : 1.0)

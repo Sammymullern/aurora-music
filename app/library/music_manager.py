@@ -3,7 +3,7 @@ Music Manager for Aurora Music
 Handles music library queries and operations
 """
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import List, Dict, Any, Optional
 from PySide6.QtCore import QObject, Signal, Property, Slot
 
@@ -53,7 +53,9 @@ class MusicManager(QObject):
                 search_term = f"%{self._search_query.strip()}%"
                 query = query.filter(
                     (Track.title.ilike(search_term)) |
-                    (Track.file_name.ilike(search_term))
+                    (Track.file_name.ilike(search_term)) |
+                    Track.artist.has(Artist.name.ilike(search_term)) |
+                    Track.album.has(Album.title.ilike(search_term))
                 )
                 logger.info(f"Applied search filter: {search_term}")
             
@@ -65,7 +67,7 @@ class MusicManager(QObject):
             elif self._current_filter == "recently_added":
                 # Songs added in the last 30 days
                 from datetime import timedelta
-                thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+                thirty_days_ago = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=30)
                 query = query.filter(Track.added_at >= thirty_days_ago)
                 query = query.order_by(Track.added_at.desc())
                 logger.info(f"Applied recently_added filter (since {thirty_days_ago})")
@@ -380,7 +382,7 @@ class MusicManager(QObject):
             track = session.query(Track).filter(Track.id == int(song_id)).first()
             if track:
                 track.play_count += 1
-                track.last_played = datetime.utcnow()
+                track.last_played = datetime.now(UTC).replace(tzinfo=None)
                 session.commit()
                 logger.info(f"Playing song: {song_id}, play count: {track.play_count}")
 

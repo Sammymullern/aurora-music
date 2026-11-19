@@ -11,8 +11,8 @@ Rectangle {
     width: 48
     height: 48
     radius: 24
-    color: isHovered ? "#10b981" : (isActive ? "#059669" : "#1e293b")
-    border.color: isActive ? "#10b981" : "#334155"
+    color: isHovered ? theme.primary : (isActive ? theme.primary : theme.primaryDark)
+    border.color: isActive ? theme.primary : theme.border
     border.width: isActive ? 2 : 1
     
     Behavior on color {

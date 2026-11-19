@@ -21,7 +21,7 @@ RowLayout {
         Layout.preferredWidth: 80
         Layout.preferredHeight: 6
         radius: 3
-        color: "#1e293b"
+        color: theme.surfaceVariant
         
         Rectangle {
             id: volumeBar
@@ -30,7 +30,7 @@ RowLayout {
             anchors.bottom: parent.bottom
             width: parent.width * (root.volume / 100)
             radius: parent.radius
-            color: "#10b981"
+        color: theme.primary
             
             Behavior on width {
                 NumberAnimation { duration: 100 }
@@ -51,7 +51,7 @@ RowLayout {
     Text {
         text: root.volume + "%"
         font.pixelSize: 12
-        color: "#a0a0a0"
+        color: theme.textSecondary
         Layout.preferredWidth: 35
     }
 }

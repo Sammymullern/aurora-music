@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#1a1a2e"
+    color: theme.background
     
     // Custom translation function that forces re-evaluation
     function tr(sourceText) {
@@ -22,7 +22,7 @@ Rectangle {
             id: sidebar
             Layout.preferredWidth: 260
             Layout.fillHeight: true
-            color: "#16162b"
+            color: theme.backgroundDark
             
             ColumnLayout {
                 anchors.fill: parent
@@ -39,13 +39,13 @@ Rectangle {
                         text: root.tr("Settings")
                         font.pixelSize: 32
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                     }
                     
                     Text {
                         text: root.tr("Configure the music player")
                         font.pixelSize: 13
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                     }
                 }
                 
@@ -63,7 +63,7 @@ Rectangle {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 52
-                        color: sidebar.currentIndex === index ? "#7c3aed" : "transparent"
+                        color: sidebar.currentIndex === index ? theme.primary : "transparent"
                         radius: 8
                         
                         RowLayout {
@@ -75,13 +75,13 @@ Rectangle {
                             Text {
                                 text: modelData.icon
                                 font.pixelSize: 20
-                                color: sidebar.currentIndex === index ? "#ffffff" : "#a0a0a0"
+                                color: sidebar.currentIndex === index ? "#ffffff" : theme.textSecondary
                             }
                             
                             Text {
                                 text: modelData.name
                                 font.pixelSize: 15
-                                color: sidebar.currentIndex === index ? "#ffffff" : "#a0a0a0"
+                                color: sidebar.currentIndex === index ? "#ffffff" : theme.textSecondary
                                 font.bold: sidebar.currentIndex === index
                             }
                             
@@ -97,8 +97,8 @@ Rectangle {
                             onClicked: sidebar.currentIndex = index
                             hoverEnabled: true
                             
-                            onEntered: parent.color = sidebar.currentIndex === index ? "#7c3aed" : "#252542"
-                            onExited: parent.color = sidebar.currentIndex === index ? "#7c3aed" : "transparent"
+                            onEntered: parent.color = sidebar.currentIndex === index ? theme.primary : theme.surface
+                            onExited: parent.color = sidebar.currentIndex === index ? theme.primary : "transparent"
                         }
                     }
                 }
@@ -133,13 +133,13 @@ Rectangle {
                         text: root.tr("General")
                         font.pixelSize: 22
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                     }
                     
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 2
-                        color: "#7c3aed"
+                        color: theme.primary
                         radius: 1
                     }
                     
@@ -152,7 +152,7 @@ Rectangle {
                             text: root.tr("Startup")
                             font.pixelSize: 16
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                         }
                         
                         ColumnLayout {
@@ -172,8 +172,8 @@ Rectangle {
                                         implicitWidth: 44
                                         implicitHeight: 24
                                         radius: 12
-                                        color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                        border.color: "#3a3a5c"
+                                        color: parent.checked ? theme.primary : theme.background
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on color {
@@ -197,7 +197,7 @@ Rectangle {
                                 
                                 Text {
                                     text: root.tr("Launch at system startup")
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                 }
                             }
@@ -215,8 +215,8 @@ Rectangle {
                                         implicitWidth: 44
                                         implicitHeight: 24
                                         radius: 12
-                                        color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                        border.color: "#3a3a5c"
+                                        color: parent.checked ? theme.primary : theme.background
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on color {
@@ -240,7 +240,7 @@ Rectangle {
                                 
                                 Text {
                                     text: root.tr("Start minimized")
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                 }
                             }
@@ -258,8 +258,8 @@ Rectangle {
                                         implicitWidth: 44
                                         implicitHeight: 24
                                         radius: 12
-                                        color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                        border.color: "#3a3a5c"
+                                        color: parent.checked ? theme.primary : theme.background
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on color {
@@ -283,7 +283,7 @@ Rectangle {
                                 
                                 Text {
                                     text: root.tr("Remember last session")
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                 }
                             }
@@ -301,8 +301,8 @@ Rectangle {
                                         implicitWidth: 44
                                         implicitHeight: 24
                                         radius: 12
-                                        color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                        border.color: "#3a3a5c"
+                                        color: parent.checked ? theme.primary : theme.background
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on color {
@@ -326,7 +326,7 @@ Rectangle {
                                 
                                 Text {
                                     text: root.tr("Restore last playlist")
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                 }
                             }
@@ -342,7 +342,7 @@ Rectangle {
                             text: root.tr("Updates")
                             font.pixelSize: 16
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                         }
                         
                         ColumnLayout {
@@ -362,8 +362,8 @@ Rectangle {
                                         implicitWidth: 44
                                         implicitHeight: 24
                                         radius: 12
-                                        color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                        border.color: "#3a3a5c"
+                                        color: parent.checked ? theme.primary : theme.background
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on color {
@@ -387,7 +387,7 @@ Rectangle {
                                 
                                 Text {
                                     text: root.tr("Automatically check for updates")
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                 }
                             }
@@ -408,13 +408,21 @@ Rectangle {
                                 }
                                 
                                 background: Rectangle {
-                                    color: parent.parent.hovered ? "#8b5cf6" : "#7c3aed"
+                                    color: parent.parent.hovered ? theme.primaryLight : theme.primary
                                     radius: 8
                                     
                                     Behavior on color {
                                         ColorAnimation { duration: 150 }
                                     }
                                 }
+                            }
+
+                            Text {
+                                text: settings ? settings.updateStatus : ""
+                                color: theme.textSecondary
+                                font.pixelSize: 12
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
                             }
                         }
                     }
@@ -436,13 +444,13 @@ Rectangle {
                                     text: root.tr("Language")
                                     font.pixelSize: 15
                                     font.bold: true
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                 }
                                 
                                 Text {
                                     text: root.tr("Restart required if changed")
                                     font.pixelSize: 13
-                                    color: "#a0a0a0"
+                                    color: theme.textSecondary
                                     lineHeight: 1.4
                                 }
                             }
@@ -469,9 +477,9 @@ Rectangle {
                                 }
                                 
                                 background: Rectangle {
-                                    color: "#1a1a2e"
+                                    color: theme.background
                                     radius: 8
-                                    border.color: "#3a3a5c"
+                                    border.color: theme.border
                                     border.width: 1
                                     
                                     Behavior on border.color {
@@ -481,7 +489,7 @@ Rectangle {
                                 
                                 contentItem: Text {
                                     text: parent.displayText
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                     verticalAlignment: Text.AlignVCenter
                                     leftPadding: 14
@@ -499,7 +507,7 @@ Rectangle {
                             text: root.tr("Notifications")
                             font.pixelSize: 16
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                         }
                         
                         ColumnLayout {
@@ -519,8 +527,8 @@ Rectangle {
                                         implicitWidth: 44
                                         implicitHeight: 24
                                         radius: 12
-                                        color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                        border.color: "#3a3a5c"
+                                        color: parent.checked ? theme.primary : theme.background
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on color {
@@ -544,7 +552,7 @@ Rectangle {
                                 
                                 Text {
                                     text: root.tr("Show desktop notifications")
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                 }
                             }
@@ -562,8 +570,8 @@ Rectangle {
                                         implicitWidth: 44
                                         implicitHeight: 24
                                         radius: 12
-                                        color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                        border.color: "#3a3a5c"
+                                        color: parent.checked ? theme.primary : theme.background
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on color {
@@ -587,7 +595,7 @@ Rectangle {
                                 
                                 Text {
                                     text: root.tr("Show currently playing track")
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                 }
                             }
@@ -605,13 +613,13 @@ Rectangle {
                         text: root.tr("Library")
                         font.pixelSize: 22
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                     }
                     
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 2
-                        color: "#7c3aed"
+                        color: theme.primary
                         radius: 1
                     }
                     
@@ -624,7 +632,7 @@ Rectangle {
                             text: root.tr("Music Folders")
                             font.pixelSize: 16
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                         }
                         
                         ColumnLayout {
@@ -641,16 +649,16 @@ Rectangle {
                                     Rectangle {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 40
-                                        color: "#1a1a2e"
+                                        color: theme.background
                                         radius: 6
-                                        border.color: "#3a3a5c"
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Text {
                                             anchors.leftMargin: 14
                                             anchors.verticalCenter: parent.verticalCenter
                                             text: modelData
-                                            color: "#e0e0e0"
+                                            color: theme.textPrimary
                                             font.pixelSize: 14
                                         }
                                     }
@@ -702,7 +710,7 @@ Rectangle {
                                     }
                                     
                                     background: Rectangle {
-                                        color: parent.parent.hovered ? "#8b5cf6" : "#7c3aed"
+                                        color: parent.parent.hovered ? theme.primaryLight : theme.primary
                                         radius: 6
                                         
                                         Behavior on color {
@@ -727,7 +735,7 @@ Rectangle {
                                     }
                                     
                                     background: Rectangle {
-                                        color: parent.parent.hovered ? "#8b5cf6" : "#7c3aed"
+                                        color: parent.parent.hovered ? theme.primaryLight : theme.primary
                                         radius: 6
                                         
                                         Behavior on color {
@@ -748,7 +756,7 @@ Rectangle {
                             text: root.tr("Library Management")
                             font.pixelSize: 16
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                         }
                         
                         ColumnLayout {
@@ -768,8 +776,8 @@ Rectangle {
                                         implicitWidth: 44
                                         implicitHeight: 24
                                         radius: 12
-                                        color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                        border.color: "#3a3a5c"
+                                        color: parent.checked ? theme.primary : theme.background
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on color {
@@ -793,7 +801,7 @@ Rectangle {
                                 
                                 Text {
                                     text: root.tr("Watch folders automatically")
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                 }
                             }
@@ -810,13 +818,13 @@ Rectangle {
                                         text: root.tr("Scan frequency")
                                         font.pixelSize: 15
                                         font.bold: true
-                                        color: "#e0e0e0"
+                                        color: theme.textPrimary
                                     }
                                     
                                     Text {
                                         text: root.tr("How often to check for changes")
                                         font.pixelSize: 13
-                                        color: "#a0a0a0"
+                                        color: theme.textSecondary
                                         lineHeight: 1.4
                                     }
                                 }
@@ -836,9 +844,9 @@ Rectangle {
                                     }
                                     
                                     background: Rectangle {
-                                        color: "#1a1a2e"
+                                        color: theme.background
                                         radius: 8
-                                        border.color: "#3a3a5c"
+                                        border.color: theme.border
                                         border.width: 1
                                         
                                         Behavior on border.color {
@@ -848,7 +856,7 @@ Rectangle {
                                     
                                     contentItem: Text {
                                         text: parent.displayText
-                                        color: "#e0e0e0"
+                                        color: theme.textPrimary
                                         font.pixelSize: 14
                                         verticalAlignment: Text.AlignVCenter
                                         leftPadding: 14
@@ -867,7 +875,7 @@ Rectangle {
                             text: root.tr("Actions")
                             font.pixelSize: 16
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                         }
                         
                         RowLayout {
@@ -890,7 +898,7 @@ Rectangle {
                                 }
                                 
                                 background: Rectangle {
-                                    color: parent.parent.hovered ? "#8b5cf6" : "#7c3aed"
+                                    color: parent.parent.hovered ? theme.primaryLight : theme.primary
                                     radius: 6
                                     
                                     Behavior on color {
@@ -915,7 +923,7 @@ Rectangle {
                                 }
                                 
                                 background: Rectangle {
-                                    color: parent.parent.hovered ? "#8b5cf6" : "#7c3aed"
+                                    color: parent.parent.hovered ? theme.primaryLight : theme.primary
                                     radius: 6
                                     
                                     Behavior on color {
@@ -940,7 +948,7 @@ Rectangle {
                                 }
                                 
                                 background: Rectangle {
-                                    color: parent.parent.hovered ? "#8b5cf6" : "#7c3aed"
+                                    color: parent.parent.hovered ? theme.primaryLight : theme.primary
                                     radius: 6
                                     
                                     Behavior on color {
@@ -960,13 +968,13 @@ Rectangle {
                             text: root.tr("Statistics")
                             font.pixelSize: 16
                             font.bold: true
-                            color: "#e0e0e0"
+                            color: theme.textPrimary
                         }
                         
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 120
-                            color: "#252542"
+                            color: theme.surface
                             radius: 8
                             
                             RowLayout {
@@ -982,13 +990,13 @@ Rectangle {
                                         text: settings ? settings.libraryStats.songs || "0" : "0"
                                         font.pixelSize: 28
                                         font.bold: true
-                                        color: "#7c3aed"
+                                        color: theme.primary
                                     }
                                     
                                     Text {
                                         text: root.tr("Songs")
                                         font.pixelSize: 14
-                                        color: "#a0a0a0"
+                                        color: theme.textSecondary
                                     }
                                 }
                                 
@@ -1000,13 +1008,13 @@ Rectangle {
                                         text: settings ? settings.libraryStats.albums || "0" : "0"
                                         font.pixelSize: 28
                                         font.bold: true
-                                        color: "#7c3aed"
+                                        color: theme.primary
                                     }
                                     
                                     Text {
                                         text: root.tr("Albums")
                                         font.pixelSize: 14
-                                        color: "#a0a0a0"
+                                        color: theme.textSecondary
                                     }
                                 }
                                 
@@ -1018,13 +1026,13 @@ Rectangle {
                                         text: settings ? settings.libraryStats.artists || "0" : "0"
                                         font.pixelSize: 28
                                         font.bold: true
-                                        color: "#7c3aed"
+                                        color: theme.primary
                                     }
                                     
                                     Text {
                                         text: root.tr("Artists")
                                         font.pixelSize: 14
-                                        color: "#a0a0a0"
+                                        color: theme.textSecondary
                                     }
                                 }
                                 
@@ -1036,13 +1044,13 @@ Rectangle {
                                         text: settings ? settings.libraryStats.size || "0 B" : "0 B"
                                         font.pixelSize: 28
                                         font.bold: true
-                                        color: "#7c3aed"
+                                        color: theme.primary
                                     }
                                     
                                     Text {
                                         text: root.tr("Size")
                                         font.pixelSize: 14
-                                        color: "#a0a0a0"
+                                        color: theme.textSecondary
                                     }
                                 }
                             }
@@ -1060,13 +1068,13 @@ Rectangle {
                         text: "Audio"
                         font.pixelSize: 22
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                     }
                     
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 2
-                        color: "#7c3aed"
+                        color: theme.primary
                         radius: 1
                     }
                             
@@ -1087,13 +1095,13 @@ Rectangle {
                                     text: "Audio Backend"
                                     font.pixelSize: 15
                                     font.bold: true
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                 }
                                 
                                 Text {
                                     text: "Choose the playback engine"
                                     font.pixelSize: 13
-                                    color: "#a0a0a0"
+                                    color: theme.textSecondary
                                     lineHeight: 1.4
                                 }
                             }
@@ -1105,9 +1113,9 @@ Rectangle {
                                 model: ["MPV (Recommended)", "GStreamer"]
                                 
                                 background: Rectangle {
-                                    color: "#1a1a2e"
+                                    color: theme.background
                                     radius: 8
-                                    border.color: "#3a3a5c"
+                                    border.color: theme.border
                                     border.width: 1
                                     
                                     Behavior on border.color {
@@ -1117,7 +1125,7 @@ Rectangle {
                                 
                                 contentItem: Text {
                                     text: parent.displayText
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                     verticalAlignment: Text.AlignVCenter
                                     leftPadding: 14
@@ -1143,13 +1151,13 @@ Rectangle {
                                     text: "Output Device"
                                     font.pixelSize: 15
                                     font.bold: true
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                 }
                                 
                                 Text {
                                     text: "Select your audio output"
                                     font.pixelSize: 13
-                                    color: "#a0a0a0"
+                                    color: theme.textSecondary
                                     lineHeight: 1.4
                                 }
                             }
@@ -1161,9 +1169,9 @@ Rectangle {
                                 model: ["Default", "PulseAudio", "PipeWire", "ALSA"]
                                 
                                 background: Rectangle {
-                                    color: "#1a1a2e"
+                                    color: theme.background
                                     radius: 8
-                                    border.color: "#3a3a5c"
+                                    border.color: theme.border
                                     border.width: 1
                                     
                                     Behavior on border.color {
@@ -1173,7 +1181,7 @@ Rectangle {
                                 
                                 contentItem: Text {
                                     text: parent.displayText
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                     verticalAlignment: Text.AlignVCenter
                                     leftPadding: 14
@@ -1199,13 +1207,13 @@ Rectangle {
                                     text: "Buffer Size"
                                     font.pixelSize: 15
                                     font.bold: true
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                 }
                                 
                                 Text {
                                     text: "Lower = less latency, higher = more stable"
                                     font.pixelSize: 13
-                                    color: "#a0a0a0"
+                                    color: theme.textSecondary
                                     lineHeight: 1.4
                                 }
                             }
@@ -1222,7 +1230,7 @@ Rectangle {
                                     value: 2048
                                     
                                     background: Rectangle {
-                                        color: "#1a1a2e"
+                                        color: theme.background
                                         radius: 4
                                         height: 6
                                     }
@@ -1233,13 +1241,13 @@ Rectangle {
                                         width: 20
                                         height: 20
                                         radius: 10
-                                        color: "#7c3aed"
+                                        color: theme.primary
                                     }
                                 }
                                 
                                 Text {
                                     text: "2048 KB"
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                     Layout.preferredWidth: 90
                                 }
@@ -1258,13 +1266,13 @@ Rectangle {
                         text: "Appearance"
                         font.pixelSize: 22
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                     }
                     
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 2
-                        color: "#7c3aed"
+                        color: theme.primary
                         radius: 1
                     }
                             
@@ -1285,13 +1293,13 @@ Rectangle {
                                     text: "Theme"
                                     font.pixelSize: 15
                                     font.bold: true
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                 }
                                 
                                 Text {
                                     text: "Choose your color scheme"
                                     font.pixelSize: 13
-                                    color: "#a0a0a0"
+                                    color: theme.textSecondary
                                     lineHeight: 1.4
                                 }
                             }
@@ -1306,7 +1314,7 @@ Rectangle {
                                         { name: "Dark", color: "#1a1a2e" },
                                         { name: "Light", color: "#f5f5f5" },
                                         { name: "Midnight", color: "#0f0f1a" },
-                                        { name: "Aurora", color: "#7c3aed" }
+                                        { name: "Aurora", color: theme.primary }
                                     ]
                                     
                                     Rectangle {
@@ -1314,7 +1322,7 @@ Rectangle {
                                         Layout.preferredHeight: 64
                                         radius: 10
                                         color: modelData.color
-                                        border.color: "#3a3a5c"
+                                        border.color: settings && settings.theme === modelData.name ? theme.primary : theme.border
                                         border.width: 2
                                         
                                         Behavior on border.color {
@@ -1329,13 +1337,13 @@ Rectangle {
                                                 Layout.preferredWidth: 22
                                                 Layout.preferredHeight: 22
                                                 radius: 11
-                                                color: "#252542"
+                                                color: theme.surface
                                                 Layout.alignment: Qt.AlignHCenter
                                             }
                                             
                                             Text {
                                                 text: modelData.name
-                                                color: modelData.name === "Light" ? "#1a1a2e" : "#e0e0e0"
+                                                color: modelData.name === "Light" ? "#1a1a2e" : "#ffffff"
                                                 font.pixelSize: 11
                                                 font.bold: true
                                                 Layout.alignment: Qt.AlignHCenter
@@ -1344,11 +1352,11 @@ Rectangle {
                                         
                                         MouseArea {
                                             anchors.fill: parent
-                                            onClicked: console.log("Selected theme:", modelData.name)
+                                            onClicked: if (settings) settings.theme = modelData.name
                                             hoverEnabled: true
                                             
-                                            onEntered: parent.border.color = "#7c3aed"
-                                            onExited: parent.border.color = "#3a3a5c"
+                                            onEntered: parent.border.color = theme.primary
+                                            onExited: parent.border.color = settings && settings.theme === modelData.name ? theme.primary : theme.border
                                         }
                                     }
                                 }
@@ -1373,13 +1381,13 @@ Rectangle {
                                     text: "Animated Backgrounds"
                                     font.pixelSize: 15
                                     font.bold: true
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                 }
                                 
                                 Text {
                                     text: "Enable subtle background animations"
                                     font.pixelSize: 13
-                                    color: "#a0a0a0"
+                                    color: theme.textSecondary
                                     lineHeight: 1.4
                                 }
                             }
@@ -1390,7 +1398,7 @@ Rectangle {
                                 
                                 contentItem: Text {
                                     text: parent.checked ? "Enabled" : "Disabled"
-                                    color: "#e0e0e0"
+                                    color: theme.textPrimary
                                     font.pixelSize: 14
                                     leftPadding: parent.indicator.width + 12
                                     verticalAlignment: Text.AlignVCenter
@@ -1400,8 +1408,8 @@ Rectangle {
                                     implicitWidth: 50
                                     implicitHeight: 28
                                     radius: 14
-                                    color: parent.checked ? "#7c3aed" : "#1a1a2e"
-                                    border.color: "#3a3a5c"
+                                    color: parent.checked ? theme.primary : theme.background
+                                    border.color: theme.border
                                     border.width: 1
                                     
                                     Behavior on color {
@@ -1436,13 +1444,13 @@ Rectangle {
                         text: sidebar.currentIndex === 4 ? "Playback" : "Advanced"
                         font.pixelSize: 22
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: theme.textPrimary
                     }
                     
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 2
-                        color: "#7c3aed"
+                        color: theme.primary
                         radius: 1
                     }
                     

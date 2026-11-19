@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: "#1a1a2e"
+    color: theme.background
     
     ColumnLayout {
         anchors.fill: parent
@@ -19,7 +19,7 @@ Rectangle {
                 text: "Playlists"
                 font.pixelSize: 28
                 font.bold: true
-                color: "#e0e0e0"
+                color: theme.textPrimary
             }
             
             Item { Layout.fillWidth: true }
@@ -27,7 +27,7 @@ Rectangle {
             Button {
                 text: "+ New Playlist"
                 background: Rectangle {
-                    color: "#7c3aed"
+                    color: theme.primary
                     radius: 8
                 }
                 contentItem: Text {
@@ -64,7 +64,7 @@ Rectangle {
                     text: "No playlists yet"
                     font.pixelSize: 24
                     font.bold: true
-                    color: "#e0e0e0"
+                    color: theme.textPrimary
                     Layout.alignment: Qt.AlignHCenter
                 }
                 
@@ -72,7 +72,7 @@ Rectangle {
                 Text {
                     text: "Create your first playlist to organize your music"
                     font.pixelSize: 14
-                    color: "#a0a0a0"
+                    color: theme.textSecondary
                     Layout.alignment: Qt.AlignHCenter
                 }
             }
@@ -160,7 +160,7 @@ Rectangle {
                 Button {
                     text: "Create"
                     background: Rectangle {
-                        color: "#7c3aed"
+                        color: theme.primary
                         radius: 8
                     }
                     contentItem: Text {
@@ -194,9 +194,9 @@ Rectangle {
         
         anchors.centerIn: parent
         background: Rectangle {
-            color: "#1a1a2e"
+            color: theme.background
             radius: 12
-            border.color: "#7c3aed"
+            border.color: theme.primary
             border.width: 2
         }
         
@@ -213,7 +213,7 @@ Rectangle {
                     text: "Edit Playlist"
                     font.pixelSize: 18
                     font.bold: true
-                    color: "#e0e0e0"
+                    color: theme.textPrimary
                 }
                 
                 Item { Layout.fillWidth: true }
@@ -227,7 +227,7 @@ Rectangle {
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                         font.pixelSize: 20
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -243,11 +243,11 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 45
                 placeholderText: "Playlist name..."
-                color: "#e0e0e0"
+                color: theme.textPrimary
                 font.pixelSize: 13
                 padding: 10
                 background: Rectangle {
-                    color: "#252542"
+                    color: theme.surface
                     radius: 8
                 }
                 selectByMouse: true
@@ -267,7 +267,7 @@ Rectangle {
                     Layout.preferredHeight: 40
                     Layout.preferredWidth: 100
                     background: Rectangle {
-                        color: "#7c3aed"
+                        color: theme.primary
                         radius: 20
                     }
                     contentItem: Text {
@@ -301,7 +301,7 @@ Rectangle {
         
         anchors.centerIn: parent
         background: Rectangle {
-            color: "#1a1a2e"
+            color: theme.background
             radius: 12
             border.color: "#ef4444"
             border.width: 2
@@ -320,7 +320,7 @@ Rectangle {
                     text: "Delete Playlist"
                     font.pixelSize: 18
                     font.bold: true
-                    color: "#e0e0e0"
+                    color: theme.textPrimary
                 }
                 
                 Item { Layout.fillWidth: true }
@@ -334,7 +334,7 @@ Rectangle {
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "#a0a0a0"
+                        color: theme.textSecondary
                         font.pixelSize: 20
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -348,7 +348,7 @@ Rectangle {
             Text {
                 text: "Are you sure you want to delete this playlist? This action cannot be undone."
                 font.pixelSize: 13
-                color: "#a0a0a0"
+                color: theme.textSecondary
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
             }
@@ -365,7 +365,7 @@ Rectangle {
                     Layout.preferredHeight: 40
                     Layout.preferredWidth: 100
                     background: Rectangle {
-                        color: "#4a4a6a"
+                        color: theme.surfaceVariant
                         radius: 20
                     }
                     contentItem: Text {

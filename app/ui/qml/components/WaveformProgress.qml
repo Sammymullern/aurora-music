@@ -50,7 +50,7 @@ RowLayout {
         text: formatTime(root.position)
         font.pixelSize: 13
         font.bold: true
-        color: "#ffffff"
+        color: theme.textPrimary
         horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
     }
@@ -96,11 +96,11 @@ RowLayout {
                     gradient: Gradient {
                         GradientStop {
                             position: 0.0
-                            color: isPlayed || isPartial ? "#7c3aed" : "#2a2a48"
+                            color: isPlayed || isPartial ? theme.primary : theme.border
                         }
                         GradientStop {
                             position: 1.0
-                            color: isPlayed || isPartial ? "#10b981" : "#35355a"
+                            color: isPlayed || isPartial ? "#10b981" : theme.borderLight
                         }
                     }
 
@@ -155,7 +155,7 @@ RowLayout {
                     height: 10
                     radius: 5
                     color: "#ffffff"
-                    border.color: "#7c3aed"
+                    border.color: theme.primary
                     border.width: 2
 
                     Rectangle {
@@ -164,7 +164,7 @@ RowLayout {
                         width: parent.width + 10
                         height: parent.height + 10
                         radius: width / 2
-                        color: "#7c3aed"
+                        color: theme.primary
                         opacity: 0.22
                     }
                 }

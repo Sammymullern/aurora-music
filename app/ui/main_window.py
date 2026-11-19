@@ -5,7 +5,7 @@ Main application window with sidebar navigation
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import QUrl, QObject, Signal
+from PySide6.QtCore import QUrl, QObject, Signal, QTimer
 from PySide6.QtQml import QQmlApplicationEngine, QQmlContext
 from PySide6.QtGui import QGuiApplication
 
@@ -16,6 +16,7 @@ from app.i18n.translation_manager import TranslationManager
 from app.library.music_manager import MusicManager
 from app.audio.volume_controller import VolumeController
 from app.ui.playlist_controller import PlaylistController
+from app.themes.theme_manager import ThemeManager
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class MainWindow(QObject):
         self.player = Player()
         self.db = db
         self.settings = SettingsManager()
+        self.theme_manager = ThemeManager()
         self.translation = TranslationManager()
         self.volume_controller = VolumeController()
         
@@ -46,6 +48,10 @@ class MainWindow(QObject):
         
         # Connect language changes
         self.settings.languageChanged.connect(self._on_language_changed)
+        self.settings.themeChanged.connect(self._on_theme_changed)
+        self.theme_manager.set_theme(self.settings.theme.lower())
+        if self.settings.autoCheckUpdates:
+            QTimer.singleShot(0, self.settings.checkForUpdates)
         
         # Setup QML engine
         self._setup_qml()
@@ -90,6 +96,7 @@ class MainWindow(QObject):
         
         # Expose settings manager
         context.setContextProperty("settings", self.settings)
+        context.setContextProperty("theme", self.theme_manager)
         
         # Expose translation manager
         context.setContextProperty("translation", self.translation)
@@ -113,6 +120,9 @@ class MainWindow(QObject):
     def _on_language_changed(self) -> None:
         """Handle language change"""
         self.translation.set_language(self.settings.language)
+
+    def _on_theme_changed(self) -> None:
+        self.theme_manager.set_theme(self.settings.theme.lower())
     
     def cleanup(self) -> None:
         """Cleanup resources"""

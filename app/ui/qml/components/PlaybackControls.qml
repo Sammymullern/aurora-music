@@ -17,14 +17,14 @@ RowLayout {
     signal repeatClicked()
     signal stopClicked()
 
-    readonly property color slateBg:     "#1f1f3c"
-    readonly property color slateBorder: "#32325a"
-    readonly property color hoverBg:     "#2a2a52"
-    readonly property color purple:      "#7c3aed"
-    readonly property color purpleSoft:  "#a78bfa"
+    readonly property color slateBg:     theme.primaryDark
+    readonly property color slateBorder: theme.primary
+    readonly property color hoverBg:     theme.surfaceVariant
+    readonly property color purple:      theme.primary
+    readonly property color purpleSoft:  theme.primaryLight
     readonly property color green:       "#10b981"
     readonly property color greenHi:     "#34d399"
-    readonly property color iconMuted:   "#b8b8d8"
+    readonly property color iconMuted:   theme.textSecondary
 
     // ############################################
     // # Shuffle — purple when active, slate otherwise
