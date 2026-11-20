@@ -175,6 +175,7 @@ class SettingsManager(QObject):
             "scan_frequency": "Every 15 min",
             "output_device": "auto",
             "audio_buffer": 0.2,
+            "equalizer_settings": {},
             "theme": "Light",
         }
         
@@ -231,6 +232,25 @@ class SettingsManager(QObject):
                 json.dump(self._settings, f, indent=4)
         except IOError:
             pass
+
+    def getEqualizerSettings(self):
+        """Return the persisted DSP state, migrating the early EQ keys if present."""
+        saved = self._settings.get("equalizer_settings", {})
+        if not isinstance(saved, dict):
+            saved = {}
+        if not saved and "equalizer_bands" in self._settings:
+            saved = {
+                "enabled": self._settings.get("equalizer_enabled", True),
+                "preset": self._settings.get("equalizer_preset", "flat"),
+                "bands": self._settings.get("equalizer_bands", [0.0] * 10),
+            }
+        return saved
+
+    def saveEqualizerSettings(self, equalizer_settings):
+        if not isinstance(equalizer_settings, dict):
+            return
+        self._settings["equalizer_settings"] = equalizer_settings
+        self._save_settings()
     
     # Property getters and setters
     def get_launch_at_startup(self):

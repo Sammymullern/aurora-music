@@ -20,6 +20,23 @@ def test_audio_and_theme_settings_persist(tmp_path, monkeypatch):
     assert reloaded.audioBuffer == 0.73
 
 
+def test_equalizer_custom_state_and_effects_persist(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    settings = SettingsManager()
+    state = {
+        "enabled": False,
+        "preamp": -2.5,
+        "preset": "Night Drive",
+        "bands": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "custom_presets": {"Night Drive": [0] * 10},
+        "effects": {"bass_enabled": True, "bass_intensity": 4.0},
+    }
+    settings.saveEqualizerSettings(state)
+
+    restored = SettingsManager().getEqualizerSettings()
+    assert restored == state
+
+
 def test_music_folders_are_discovered_and_persisted(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     default_music = tmp_path / "Music"

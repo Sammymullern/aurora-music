@@ -50,30 +50,22 @@ Rectangle {
                 anchors.rightMargin: 18
                 spacing: 12
 
-                // SVG Logo
+                // Nelva application mark
                 Image {
                     Layout.preferredWidth: 42
                     Layout.preferredHeight: 42
-                    source: iconPath + "/logo.svg"
+                    source: iconPath + "/Nelva.png"
                     sourceSize: Qt.size(42, 42)
                     smooth: true
+                    mipmap: true
                 }
 
-                ColumnLayout {
+                Image {
                     Layout.fillWidth: true
-                    spacing: 1
-                    Text {
-                        text: "Aurora"
-                        font.pixelSize: 18
-                        font.bold: true
-                        color: theme.textPrimary
-                    }
-                    Text {
-                        text: "MUSIC"
-                        font.pixelSize: 11
-                        color: theme.primary
-                        font.letterSpacing: 3
-                    }
+                    Layout.preferredHeight: 48
+                    source: iconPath + "/nelva-wordmark.svg"
+                    sourceSize: Qt.size(220, 80)
+                    smooth: true
                 }
             }
         }

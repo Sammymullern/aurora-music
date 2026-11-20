@@ -31,6 +31,15 @@ class MainWindow(QObject):
         self.player = Player()
         self.db = db
         self.settings = SettingsManager()
+        self.player.dsp_manager.restore_settings(self.settings.getEqualizerSettings())
+        self.equalizer = self.player.dsp_manager.equalizer
+        self.effects = self.player.dsp_manager
+        self._equalizer_save_timer = QTimer(self)
+        self._equalizer_save_timer.setSingleShot(True)
+        self._equalizer_save_timer.setInterval(250)
+        self._equalizer_save_timer.timeout.connect(self._save_equalizer_settings)
+        self.equalizer.settings_changed.connect(self._queue_equalizer_save)
+        self.effects.settings_changed.connect(self._queue_equalizer_save)
         self.theme_manager = ThemeManager()
         self.translation = TranslationManager()
         self.volume_controller = VolumeController()
@@ -112,6 +121,8 @@ class MainWindow(QObject):
         
         # Expose player
         context.setContextProperty("player", self.player)
+        context.setContextProperty("equalizer", self.equalizer)
+        context.setContextProperty("effects", self.effects)
         
         # Expose database
         context.setContextProperty("database", self.db)
@@ -150,6 +161,12 @@ class MainWindow(QObject):
         self.player.setAudioDevice(self.settings.outputDevice)
         self.player.setAudioBuffer(self.settings.audioBuffer)
 
+    def _queue_equalizer_save(self) -> None:
+        self._equalizer_save_timer.start()
+
+    def _save_equalizer_settings(self) -> None:
+        self.settings.saveEqualizerSettings(self.effects.persistent_settings())
+
     def _refresh_library_monitoring(self) -> None:
         if self.library_watcher and self.library_watcher.is_running():
             self.library_watcher.stop()
@@ -179,6 +196,8 @@ class MainWindow(QObject):
     
     def cleanup(self) -> None:
         """Cleanup resources"""
+        self._equalizer_save_timer.stop()
+        self._save_equalizer_settings()
         if self.settings.rememberLastSession:
             self.settings.save_last_session(self.player.get_session_state())
         if self.library_watcher and self.library_watcher.is_running():
