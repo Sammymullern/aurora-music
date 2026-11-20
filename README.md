@@ -4,7 +4,7 @@ A premium native Linux music application with modern UI, broad audio support, SQ
 
 ## Features
 
-- **Native Linux App**: Available as DEB/RPM/AppImage/Flatpak
+- **Native Linux App**: Installable Python package with the `nelva` terminal command; a Debian package build is included
 - **Modern UI**: PySide6+QML with glassmorphism design
 - **Audio Support**: MP3, FLAC, WAV, OGG, OPUS, AAC, ALAC, AIFF, APE, WavPack, MIDI, DSD and more
 - **Advanced Playback**: Gapless playback, crossfade, ReplayGain, DSP & voice enhancement
@@ -14,6 +14,8 @@ A premium native Linux music application with modern UI, broad audio support, SQ
 - **AI Recommendations**: Powered by librosa for intelligent music suggestions
 - **Plugin System**: Extensible architecture for custom features
 
+The RPM and Flatpak definitions and AppImage script are still experimental and have not been validated as installable releases.
+
 ## Installation
 
 ### Prerequisites
@@ -22,10 +24,10 @@ A premium native Linux music application with modern UI, broad audio support, SQ
 ```bash
 # Ubuntu/Debian
 sudo apt-get update
-sudo apt-get install python3.13 libmpv2 mpv
+sudo apt-get install python3.11 libmpv2 mpv
 
 # Fedora/RHEL
-sudo dnf install python3.13 mpv-libs
+sudo dnf install python3.11 mpv-libs
 
 # Arch Linux
 sudo pacman -S python mpv
@@ -39,23 +41,28 @@ git clone https://github.com/sammymullern/aurora-music.git
 cd aurora-music
 
 # Create virtual environment
-python3.13 -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+pip install .
 
 # Run the application
-python -m app.main
-```
-
-After installing the package, start the app from a terminal with:
-
-```bash
 nelva
 ```
 
-The installed command uses the Python environment provided by the package; you do not need to activate a development virtual environment.
+### Debian package
+
+Build and install a package with:
+
+```bash
+./packaging/build.sh
+sudo apt install ./dist/nelvamusic_0.1.0_all.deb
+nelva
+```
+
+The installed `nelva` command launches the app directly. Users do not need to open or activate a development virtual environment.
 
 ### Development Setup
 
@@ -128,9 +135,11 @@ When you first launch NelvaMusic:
 
 ### Settings Location
 
-Aurora Music stores configuration in:
-- Linux: `~/.config/Aurora Music/aurora-music.conf`
-- Database: `~/.local/share/aurora-music/aurora.db`
+NelvaMusic stores configuration and library data in:
+- Settings: `~/.config/aurora-music/settings.json`
+- Database: `$XDG_DATA_HOME/aurora-music/aurora.db`, or `~/.local/share/aurora-music/aurora.db` when `XDG_DATA_HOME` is unset
+
+The existing `aurora-music` data directory is retained so upgrades preserve user settings and library data.
 
 ### Audio Settings
 
@@ -158,7 +167,7 @@ Use the Library page to scan folders, clean missing tracks, rebuild the index, a
 sudo apt-get install libmpv2 mpv
 
 # Check Python version
-python3 --version  # Should be 3.13+
+python3 --version  # Should be 3.11+
 ```
 
 **No audio output**
@@ -188,17 +197,6 @@ Run with debug logging:
 export AURORA_DEBUG=1
 python -m app.main
 ```
-
-## Screenshots
-
-![Main Window](https://github.com/sammymullern/aurora-music/raw/main/assets/screenshots/main.png)
-*Main interface with library view*
-
-![Now Playing](https://github.com/sammymullern/aurora-music/raw/main/assets/screenshots/now-playing.png)
-*Now playing view with album art*
-
-![Equalizer](https://github.com/sammymullern/aurora-music/raw/main/assets/screenshots/equalizer.png)
-*10-band equalizer with presets*
 
 ## Documentation
 

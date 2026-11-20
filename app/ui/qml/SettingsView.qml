@@ -840,7 +840,7 @@ ColumnLayout {
                             Layout.preferredWidth: 220
                             spacing: 6
                             Text { text: "Playback engine"; font.pixelSize: 15; font.bold: true; color: theme.textPrimary }
-                            Text { text: "Aurora uses MPV for reliable playback."; font.pixelSize: 13; color: theme.textSecondary; wrapMode: Text.WordWrap }
+                            Text { text: "NelvaMusic uses MPV for reliable playback."; font.pixelSize: 13; color: theme.textSecondary; wrapMode: Text.WordWrap }
                         }
                         Text {
                             text: "MPV"

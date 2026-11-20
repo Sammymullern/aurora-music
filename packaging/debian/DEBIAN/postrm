@@ -4,7 +4,7 @@ set -e
 case "$1" in
     remove|purge)
         # Remove desktop entry
-        rm -f /usr/share/applications/aurora-music.desktop
+        rm -f /usr/share/applications/nelvamusic.desktop
         
         # Update desktop database
         update-desktop-database /usr/share/applications || true

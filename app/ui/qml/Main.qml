@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
+import "components"
 
 ApplicationWindow {
     id: root
@@ -10,6 +11,7 @@ ApplicationWindow {
     height: 900
     minimumWidth: 1050
     minimumHeight: 680
+    flags: Qt.Window | Qt.FramelessWindowHint
     color: theme.background
     title: "NelvaMusic"
 
@@ -18,7 +20,22 @@ ApplicationWindow {
     property real glassOpacity: 0.7
 
     property bool showNowPlaying: false
+    property int previousContentIndex: 0
+    readonly property int nowPlayingIndex: 6
     readonly property int playerBarHeight: 132
+
+    function openNowPlaying() {
+        if (!player || !player.hasCurrentTrack) return
+        if (contentStack.currentIndex !== nowPlayingIndex)
+            previousContentIndex = contentStack.currentIndex
+        showNowPlaying = true
+        contentStack.currentIndex = nowPlayingIndex
+    }
+
+    function closeNowPlaying() {
+        showNowPlaying = false
+        contentStack.currentIndex = previousContentIndex
+    }
 
     Item {
         id: scene
@@ -64,36 +81,34 @@ ApplicationWindow {
                         PlaylistDetailView { id: playlistDetailView }
                         SettingsView { id: settingsView }
                         LibrarySongsView { id: librarySongsView }
+                        NowPlayingView {
+                            id: nowPlayingView
+                            onBackClicked: root.closeNowPlaying()
+                            currentTrack: player ? player.currentDisplayTitle : ""
+                            currentArtist: player ? player.currentArtist : ""
+                            currentAlbum: player ? player.currentAlbum : ""
+                            currentAlbumArt: player ? player.currentAlbumArt : ""
+                        }
                     }
 
                     PlayerControls {
                         id: playerControls
+                        visible: !showNowPlaying
                         Layout.fillWidth: true
                         Layout.preferredHeight: root.playerBarHeight
                         Layout.minimumHeight: root.playerBarHeight
                         onShowNowPlayingRequested: {
-                            if (player && player.currentTitle && player.currentTitle.length > 0) {
-                                showNowPlaying = true
-                            }
+                            root.openNowPlaying()
                         }
                     }
                 }
             }
         }
 
-        NowPlayingView {
-            id: nowPlayingView
-            anchors {
-                fill: scene
-                bottomMargin: playerControls.height
-            }
-            z: 10
-            visible: showNowPlaying
-            onBackClicked: { showNowPlaying = false }
-            currentTrack: player ? player.currentTitle : ""
-            currentArtist: player ? player.currentArtist : ""
-            currentAlbum: player ? player.currentAlbum : ""
-            currentAlbumArt: player ? player.currentAlbumArt : ""
+        WindowResizeHandles {
+            anchors.fill: scene
+            z: 20
+            appWindow: root
         }
     }
 }

@@ -1,5 +1,5 @@
 """
-Settings Manager for Aurora Music
+Settings Manager for NelvaMusic
 Handles application settings persistence and logic
 """
 import json

@@ -1,5 +1,5 @@
 """
-i18n module for Aurora Music
+i18n module for NelvaMusic
 """
 from .translation_manager import TranslationManager
 

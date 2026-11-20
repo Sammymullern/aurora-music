@@ -48,12 +48,20 @@ Rectangle {
             }
         }
     }
+
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton
+        onPressed: {
+            if (!root.maximized && mainWindow) mainWindow.beginWindowMove()
+        }
+    }
     
     RowLayout {
         anchors.fill: parent
         anchors.leftMargin: 16
         anchors.rightMargin: 10
-        spacing: 8
+        spacing: 10
 
         Label {
             text: "NelvaMusic"
@@ -66,7 +74,8 @@ Rectangle {
 
         ToolButton {
             id: equalizerButton
-            implicitWidth: 64
+            implicitWidth: 108
+            implicitHeight: 34
             ToolTip.text: "Open equalizer"
             ToolTip.visible: hovered
             onClicked: root.showEqualizer()
@@ -107,26 +116,62 @@ Rectangle {
             targetWindow: root.appWindow
         }
 
-        ToolButton {
-            text: "−"
-            ToolTip.text: "Minimize"
-            ToolTip.visible: hovered
-            onClicked: if (root.appWindow) root.appWindow.showMinimized()
+        Rectangle {
+            Layout.preferredWidth: 1
+            Layout.preferredHeight: 20
+            Layout.leftMargin: 4
+            Layout.rightMargin: 2
+            color: theme.border
+            opacity: 0.8
         }
-        ToolButton {
-            text: root.maximized ? "❐" : "□"
-            ToolTip.text: root.maximized ? "Restore" : "Maximize"
-            ToolTip.visible: hovered
-            onClicked: {
-                if (!root.appWindow) return
-                root.appWindow.visibility = root.maximized ? Window.Windowed : Window.Maximized
+
+        RowLayout {
+            spacing: 4
+
+            ToolButton {
+                id: minimizeButton
+                implicitWidth: 34
+                implicitHeight: 34
+                text: "−"
+                ToolTip.text: "Minimize"
+                ToolTip.visible: hovered
+                onClicked: if (root.appWindow) root.appWindow.showMinimized()
+                background: Rectangle {
+                    radius: 8
+                    color: minimizeButton.hovered ? theme.surfaceVariant : "transparent"
+                }
             }
-        }
-        ToolButton {
-            text: "×"
-            ToolTip.text: "Close"
-            ToolTip.visible: hovered
-            onClicked: if (root.appWindow) root.appWindow.close()
+
+            ToolButton {
+                id: maximizeButton
+                implicitWidth: 34
+                implicitHeight: 34
+                text: root.maximized ? "❐" : "□"
+                ToolTip.text: root.maximized ? "Restore" : "Maximize"
+                ToolTip.visible: hovered
+                onClicked: {
+                    if (!root.appWindow) return
+                    root.appWindow.visibility = root.maximized ? Window.Windowed : Window.Maximized
+                }
+                background: Rectangle {
+                    radius: 8
+                    color: maximizeButton.hovered ? theme.surfaceVariant : "transparent"
+                }
+            }
+
+            ToolButton {
+                id: closeButton
+                implicitWidth: 34
+                implicitHeight: 34
+                text: "×"
+                ToolTip.text: "Close"
+                ToolTip.visible: hovered
+                onClicked: if (root.appWindow) root.appWindow.close()
+                background: Rectangle {
+                    radius: 8
+                    color: closeButton.hovered ? "#7f1d1d" : "transparent"
+                }
+            }
         }
     }
 }

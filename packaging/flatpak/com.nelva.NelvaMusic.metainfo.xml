@@ -27,24 +27,9 @@
   
   <launchable type="desktop-id">com.nelva.NelvaMusic.desktop</launchable>
   
-  <screenshots>
-    <screenshot type="default">
-      <image>https://auroramusic.com/screenshots/main.png</image>
-      <caption>Main application window</caption>
-    </screenshot>
-  </screenshots>
-  
-  <url type="homepage">https://auroramusic.com</url>
-  <url type="bugtracker">https://github.com/auroramusic/aurora-music/issues</url>
-  <url type="donation">https://auroramusic.com/donate</url>
+  <url type="homepage">https://github.com/sammymullern/aurora-music</url>
+  <url type="bugtracker">https://github.com/sammymullern/aurora-music/issues</url>
   
   <content_rating type="oars-1.1"/>
   
-  <releases>
-    <release version="0.1.0" date="2024-01-01">
-      <description>
-        <p>Initial release</p>
-      </description>
-    </release>
-  </releases>
 </component>

@@ -1,5 +1,5 @@
 """
-Plugin system for Aurora Music
+Plugin system for NelvaMusic
 """
 
 from app.plugins.manager import PluginManager

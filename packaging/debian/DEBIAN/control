@@ -1,13 +1,13 @@
-Package: aurora-music
+Package: nelvamusic
 Version: 0.1.0
 Section: sound
 Priority: optional
-Maintainer: Aurora Music Team <team@auroramusic.com>
-Architecture: amd64
-Depends: python3 (>= 3.13), python3-pyside6, python3-sqlalchemy, python3-mpv, python3-watchdog, python3-mutagen, python3-librosa, python3-pillow, python3-numpy, python3-scipy, python3-soundfile, libmpv2
+Maintainer: NelvaMusic Team <team@auroramusic.com>
+Architecture: all
+Depends: python3 (>= 3.11), python3-pyside6, python3-sqlalchemy, python3-mpv, python3-watchdog, python3-mutagen, python3-librosa, python3-pillow, python3-numpy, python3-scipy, python3-soundfile, libmpv2
 Recommends: ffmpeg
 Description: Premium native Linux music application
- Aurora Music is a modern music player with a beautiful UI, broad audio
+ NelvaMusic is a modern music player with a beautiful UI, broad audio
  support, SQLite-indexed library, automatic folder monitoring, professional
  audio processing, themes, plugins, and AI-powered recommendations.
  .

@@ -1,5 +1,5 @@
 """
-Settings module for Aurora Music
+Settings module for NelvaMusic
 """
 from .settings_manager import SettingsManager
 

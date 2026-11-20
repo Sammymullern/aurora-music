@@ -1,15 +1,15 @@
-Name:           aurora-music
+Name:           nelvamusic
 Version:        0.1.0
 Release:        1%{?dist}
 Summary:        Premium native Linux music application
 
 License:        MIT
-URL:            https://auroramusic.com
+URL:            https://github.com/sammymullern/aurora-music
 Source0:        %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
 
-Requires:       python3 >= 3.13
+Requires:       python3 >= 3.11
 Requires:       python3-pyside6
 Requires:       python3-sqlalchemy
 Requires:       python3-mpv
@@ -25,7 +25,7 @@ Requires:       mpv-libs
 Recommends:     ffmpeg
 
 %description
-Aurora Music is a modern music player with a beautiful UI, broad audio
+NelvaMusic is a modern music player with a beautiful UI, broad audio
 support, SQLite-indexed library, automatic folder monitoring, professional
 audio processing, themes, plugins, and AI-powered recommendations.
 
@@ -45,35 +45,35 @@ Features:
 # No build step for Python package
 
 %install
-mkdir -p %{buildroot}/usr/lib/aurora-music
+mkdir -p %{buildroot}/usr/lib/nelvamusic
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/share/applications
 mkdir -p %{buildroot}/usr/share/icons/hicolor/512x512/apps
 
-cp -r app %{buildroot}/usr/lib/aurora-music/
-cp -r assets %{buildroot}/usr/lib/aurora-music/
-cp -r plugins %{buildroot}/usr/lib/aurora-music/
-cp requirements.txt %{buildroot}/usr/lib/aurora-music/
-cp pyproject.toml %{buildroot}/usr/lib/aurora-music/
+cp -r app %{buildroot}/usr/lib/nelvamusic/
+cp -r assets %{buildroot}/usr/lib/nelvamusic/
+cp -r plugins %{buildroot}/usr/lib/nelvamusic/
+cp requirements.txt %{buildroot}/usr/lib/nelvamusic/
+cp pyproject.toml %{buildroot}/usr/lib/nelvamusic/
 
 cat > %{buildroot}/usr/bin/nelva << 'EOF'
 #!/usr/bin/env python3
 import sys
-sys.path.insert(0, '/usr/lib/aurora-music')
+sys.path.insert(0, '/usr/lib/nelvamusic')
 from app.main import main
 main()
 EOF
 chmod +x %{buildroot}/usr/bin/nelva
 
-cp packaging/aurora-music.desktop %{buildroot}/usr/share/applications/
+cp packaging/nelvamusic.desktop %{buildroot}/usr/share/applications/
 cp assets/icons/Nelva.png %{buildroot}/usr/share/icons/hicolor/512x512/apps/nelva.png
 
 %files
-/usr/lib/aurora-music/*
+/usr/lib/nelvamusic/*
 /usr/bin/nelva
-/usr/share/applications/aurora-music.desktop
+/usr/share/applications/nelvamusic.desktop
 /usr/share/icons/hicolor/512x512/apps/nelva.png
 
 %changelog
-* %(date "+%%a %%b %%d %%Y") Aurora Music Team <team@auroramusic.com> - 0.1.0-1
+* %(date "+%%a %%b %%d %%Y") NelvaMusic Team <team@auroramusic.com> - 0.1.0-1
 - Initial release

@@ -32,7 +32,7 @@ ENV/
 *~
 .DS_Store
 
-# Aurora specific
+# NelvaMusic and legacy application data
 *.db
 *.sqlite
 *.sqlite3

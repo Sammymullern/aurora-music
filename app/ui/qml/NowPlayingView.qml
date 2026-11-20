@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "./components"
 
@@ -14,21 +13,21 @@ Rectangle {
     property int volume: volumeController ? volumeController.volume : 100
     property bool shuffle: player ? player.isShuffle : false
     property string repeat: player ? player.repeatMode : "off"
-    property string currentTrack: player ? player.currentTitle : ""
+    property string currentTrack: player ? player.currentDisplayTitle : ""
     property string currentArtist: player ? player.currentArtist : ""
     property string currentAlbum: player ? player.currentAlbum : ""
     property string currentAlbumArt: player ? player.currentAlbumArt : ""
 
-    property bool hasTrack: currentTrack.length > 0
+    property bool hasTrack: player ? player.hasCurrentTrack : currentTrack.length > 0
 
     readonly property real viewW: root.width
     readonly property real viewH: root.height
 
-    readonly property bool isMiniMode: viewW < 850 || viewH < 560
+    readonly property bool isMiniMode: viewW < 1250 || viewH < 760
     readonly property real layoutT: Math.min(1, Math.max(0, (viewW - 850) / 900))
+    readonly property real miniArtSize: Math.min(240, Math.max(150, viewH * 0.30))
 
     readonly property int outerPad: Math.round(20 + layoutT * 36)
-    readonly property int contentMaxW: Math.round(1200 + layoutT * 200)
 
     signal backClicked()
 
@@ -51,6 +50,11 @@ Rectangle {
             GradientStop { position: 0.75; color: "#08000000" }
             GradientStop { position: 1.00; color: "#14000000" }
         }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.AllButtons
     }
 
     Rectangle {
@@ -117,27 +121,6 @@ Rectangle {
 
             Item { Layout.fillWidth: true }
 
-            Rectangle {
-                id: modeBadge
-                Layout.preferredWidth: badgeText.contentWidth + 22
-                Layout.preferredHeight: 32
-                Layout.alignment: Qt.AlignVCenter
-                radius: 16
-                color: theme.surfaceVariant
-                border.color: root.isMiniMode ? theme.primary : theme.surfaceVariant
-                border.width: 1
-                visible: false
-
-                Text {
-                    id: badgeText
-                    anchors.centerIn: parent
-                    text: root.isMiniMode ? "MINI" : "MAX"
-                    font.pixelSize: 10
-                    font.bold: true
-                    color: root.isMiniMode ? theme.primaryLight : theme.textSecondary
-                    font.letterSpacing: 1.2
-                }
-            }
         }
 
         Loader {
@@ -145,6 +128,8 @@ Rectangle {
             anchors { top: topRow.bottom; topMargin: 16; left: parent.left; right: parent.right; bottom: parent.bottom }
             sourceComponent: root.isMiniMode ? miniLayout : wideLayout
             asynchronous: true
+            active: root.hasTrack
+            visible: root.hasTrack
         }
     }
 
@@ -176,7 +161,7 @@ Rectangle {
 
         Text {
             Layout.alignment: Qt.AlignHCenter
-            text: "Pick a song from your Music library to start listening"
+            text: "Go back to your library and choose a song"
             font.pixelSize: 15
             color: theme.textSecondary
         }
@@ -227,32 +212,18 @@ Rectangle {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.maximumWidth: 720
-                        Layout.preferredHeight: 140
-                        Layout.minimumHeight: 100
-                        radius: 22
+                        Layout.preferredHeight: 100
+                        Layout.minimumHeight: 82
+                        radius: 18
                         color: theme.background
                         border.color: theme.surfaceVariant
                         border.width: 1
                         opacity: 0.90
 
-                        Rectangle {
-                            z: -1
-                            anchors.fill: parent
-                            radius: parent.radius
-                            gradient: Gradient {
-                                GradientStop { position: 0.0; color: "#307c3aed" }
-                                GradientStop { position: 1.0; color: "#1510b981" }
-                            }
-                            opacity: 0.08
-                        }
-
                         WaveformProgress {
-                            id: wideWaveform
-                            anchors { fill: parent; leftMargin: 14; rightMargin: 14; topMargin: 10; bottomMargin: 10 }
+                            anchors { fill: parent; leftMargin: 14; rightMargin: 14; topMargin: 8; bottomMargin: 8 }
                             position: root.currentPosition
                             duration: root.currentDuration
-                            isPlaying: root.isPlaying
-                            trackSeed: root.currentTrack + "|" + root.currentArtist
                             onSeekRequested: function(p) { if (player) player.seekTo(p) }
                         }
                     }
@@ -313,13 +284,14 @@ Rectangle {
     Component {
         id: miniLayout
         ColumnLayout {
-            spacing: 18
+            spacing: 12
 
             AlbumArtStage {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Math.max(220, Math.min(viewW * 0.52, 340))
-                Layout.preferredHeight: Layout.preferredWidth
-                Layout.maximumHeight: Math.min(viewH * 0.38, 340)
+                Layout.preferredWidth: root.miniArtSize
+                Layout.preferredHeight: root.miniArtSize
+                Layout.maximumWidth: root.miniArtSize
+                Layout.maximumHeight: root.miniArtSize
                 albumArt: root.currentAlbumArt
                 isPlaying: root.isPlaying
                 hasTrack: root.hasTrack
@@ -337,21 +309,18 @@ Rectangle {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 96
-                Layout.minimumHeight: 78
-                radius: 18
+                Layout.preferredHeight: 78
+                Layout.minimumHeight: 68
+                radius: 16
                 color: theme.background
                 border.color: theme.surfaceVariant
                 border.width: 1
                 opacity: 0.90
 
                 WaveformProgress {
-                    id: miniWaveform
-                    anchors { fill: parent; leftMargin: 10; rightMargin: 10; topMargin: 8; bottomMargin: 8 }
+                    anchors { fill: parent; leftMargin: 10; rightMargin: 10; topMargin: 4; bottomMargin: 4 }
                     position: root.currentPosition
                     duration: root.currentDuration
-                    isPlaying: root.isPlaying
-                    trackSeed: root.currentTrack + "|" + root.currentArtist
                     onSeekRequested: function(p) { if (player) player.seekTo(p) }
                 }
             }

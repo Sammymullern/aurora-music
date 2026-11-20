@@ -3,29 +3,60 @@ set -e
 
 VERSION="0.1.0"
 BUILD_DIR="dist"
+DEB_OUTPUT="${BUILD_DIR}/nelvamusic_${VERSION}_all.deb"
+PACKAGE_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/nelvamusic-package.XXXXXX")"
+PACKAGE_ROOT="${PACKAGE_STAGE}/root"
+APP_ROOT="${PACKAGE_ROOT}/usr/lib/nelvamusic"
+trap 'rm -rf "${PACKAGE_STAGE}"' EXIT
 
-echo "Building Aurora Music packages..."
+echo "Preparing NelvaMusic distribution artifacts..."
 
 # Clean previous build
-rm -rf "${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}"
 
 # Create source tarball
 echo "Creating source tarball..."
-tar -czf "${BUILD_DIR}/aurora-music-${VERSION}.tar.gz" \
+tar -czf "${BUILD_DIR}/nelvamusic-${VERSION}.tar.gz" \
+    --transform="s,^\.,nelvamusic-${VERSION}," \
     --exclude='.git' \
     --exclude='__pycache__' \
     --exclude='*.pyc' \
     --exclude='dist' \
     --exclude='build' \
     --exclude='.venv' \
+    --exclude='build_appimage' \
     --exclude='venv' \
     .
+
+echo "Building Debian package..."
+mkdir -p "${APP_ROOT}" "${PACKAGE_ROOT}/usr/bin" \
+    "${PACKAGE_ROOT}/usr/share/applications" \
+    "${PACKAGE_ROOT}/usr/share/icons/hicolor/512x512/apps" \
+    "${PACKAGE_ROOT}/DEBIAN"
+cp -r app assets plugins "${APP_ROOT}/"
+install -Dm644 pyproject.toml "${APP_ROOT}/pyproject.toml"
+install -Dm644 requirements.txt "${APP_ROOT}/requirements.txt"
+install -Dm644 packaging/debian/DEBIAN/control "${PACKAGE_ROOT}/DEBIAN/control"
+install -Dm755 packaging/debian/DEBIAN/postinst "${PACKAGE_ROOT}/DEBIAN/postinst"
+install -Dm755 packaging/debian/DEBIAN/postrm "${PACKAGE_ROOT}/DEBIAN/postrm"
+install -Dm644 packaging/nelvamusic.desktop \
+    "${PACKAGE_ROOT}/usr/share/applications/nelvamusic.desktop"
+install -Dm644 assets/icons/Nelva.png \
+    "${PACKAGE_ROOT}/usr/share/icons/hicolor/512x512/apps/nelva.png"
+cat > "${PACKAGE_ROOT}/usr/bin/nelva" <<'EOF'
+#!/usr/bin/python3
+import sys
+sys.path.insert(0, "/usr/lib/nelvamusic")
+from app.main import main
+main()
+EOF
+chmod 755 "${PACKAGE_ROOT}/usr/bin/nelva"
+dpkg-deb --root-owner-group --build "${PACKAGE_ROOT}" "${DEB_OUTPUT}"
 
 echo "Build artifacts created in ${BUILD_DIR}/"
 echo ""
 echo "To build specific packages:"
-echo "  DEB:   sudo dpkg-deb --build packaging/debian aurora-music_${VERSION}_amd64.deb"
-echo "  RPM:   rpmbuild -ba packaging/rpm/aurora-music.spec"
-echo "  Flatpak: flatpak-builder build packaging/flatpak/com.auroramusic.AuroraMusic.json"
-echo "  AppImage: bash packaging/appimage/build_appimage.sh"
+echo "  DEB:   ${DEB_OUTPUT}"
+echo "  RPM:   rpmbuild -ba packaging/rpm/nelvamusic.spec"
+echo "  Flatpak: packaging/flatpak/com.nelva.NelvaMusic.json (build still needs validation)"
+echo "  AppImage: prototype only; not validated for distribution"

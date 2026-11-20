@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "./components"
 
@@ -46,7 +45,7 @@ Rectangle {
     property int volume: volumeController ? volumeController.volume : 100
     property bool shuffle: player ? player.isShuffle : false
     property string repeat: player ? player.repeatMode : "off"
-    property string currentTrack: player ? player.currentTitle : ""
+    property string currentTrack: player ? player.currentDisplayTitle : ""
     property string currentArtist: player ? player.currentArtist : ""
     property string currentAlbum: player ? player.currentAlbum : ""
     property string currentAlbumArt: player ? player.currentAlbumArt : ""

@@ -3,19 +3,6 @@ set -e
 
 case "$1" in
     configure)
-        # Create desktop entry
-        cat > /usr/share/applications/aurora-music.desktop << EOF
-[Desktop Entry]
-Name=NelvaMusic
-Comment=Premium native Linux music application
-Exec=/usr/bin/nelva
-Icon=nelva
-Terminal=false
-Type=Application
-Categories=Audio;AudioVideo;Player;
-StartupNotify=true
-EOF
-        
         # Update desktop database
         update-desktop-database /usr/share/applications || true
         

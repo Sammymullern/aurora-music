@@ -1,5 +1,5 @@
 """
-Music Manager for Aurora Music
+Music Manager for NelvaMusic
 Handles music library queries and operations
 """
 import logging

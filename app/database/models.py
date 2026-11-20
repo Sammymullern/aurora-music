@@ -1,5 +1,5 @@
 """
-SQLAlchemy database models for Aurora Music
+SQLAlchemy database models for NelvaMusic
 """
 
 from datetime import UTC, datetime

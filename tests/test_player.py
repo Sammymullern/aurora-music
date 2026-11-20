@@ -5,6 +5,7 @@ Tests for audio player
 import pytest
 from concurrent.futures import Future
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from app.player.player import Player
@@ -19,6 +20,27 @@ class TestPlayer:
         player = Player()
         assert player._is_initialized
         mock_mpv.assert_called_once()
+
+    def test_mpv_end_file_reason_is_read_from_event_data(self):
+        eof_event = SimpleNamespace(data=SimpleNamespace(reason=0))
+        stopped_event = SimpleNamespace(data=SimpleNamespace(reason=2))
+
+        assert Player._get_mpv_end_file_reason(eof_event) == 0
+        assert Player._get_mpv_end_file_reason(stopped_event) == 2
+
+    @patch('app.player.player.mpv.MPV')
+    def test_play_playlist_records_selected_index_for_auto_advance(self, mock_mpv, tmp_path):
+        first = tmp_path / "first.mp3"
+        second = tmp_path / "second.mp3"
+        first.touch()
+        second.touch()
+        mock_mpv.return_value = Mock()
+
+        player = Player()
+        assert player.playPlaylist([str(first), str(second)], 1)
+
+        assert player.get_current_index() == 1
+        assert player.get_current_track() == second
     
     @patch('app.player.player.mpv.MPV')
     def test_volume_setting(self, mock_mpv):

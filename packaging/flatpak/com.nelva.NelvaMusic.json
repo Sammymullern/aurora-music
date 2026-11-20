@@ -8,10 +8,13 @@
         "--share=ipc",
         "--socket=fallback-x11",
         "--socket=wayland",
+        "--socket=pulseaudio",
         "--device=dri",
         "--share=network",
         "--filesystem=home:ro",
-        "--filesystem=xdg-music:rw",
+        "--filesystem=xdg-config/aurora-music:create",
+        "--filesystem=xdg-data/aurora-music:create",
+        "--filesystem=xdg-music:ro",
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.mpris.MediaPlayer2.Player",
         "--own-name=org.mpris.MediaPlayer2.NelvaMusic"
@@ -20,22 +23,21 @@
         {
             "name": "python3-pyside6",
             "buildsystem": "simple",
+            "build-options": {
+                "build-args": ["--share=network"]
+            },
             "build-commands": [
-                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} PySide6"
-            ],
-            "sources": [
-                {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/py3/P/PySide6/PySide6-6.6.0-0-py3-none-any.whl",
-                    "sha256": "placeholder"
-                }
+                "pip3 install --disable-pip-version-check --no-cache-dir --prefix=${FLATPAK_DEST} 'PySide6>=6.6.0'"
             ]
         },
         {
             "name": "python3-modules",
             "buildsystem": "simple",
+            "build-options": {
+                "build-args": ["--share=network"]
+            },
             "build-commands": [
-                "pip3 install --no-build-isolation --prefix=${FLATPAK_DEST} SQLAlchemy python-mpv watchdog mutagen librosa pillow numpy scipy soundfile"
+                "pip3 install --disable-pip-version-check --no-cache-dir --prefix=${FLATPAK_DEST} SQLAlchemy python-mpv watchdog mutagen librosa pillow numpy scipy soundfile"
             ]
         },
         {
@@ -43,24 +45,29 @@
             "buildsystem": "meson",
             "config-opts": [
                 "-Dlibmpv=true",
-                "-Dlua=disabled"
+                "-Dcplayer=false",
+                "-Dlua=disabled",
+                "-Dlibplacebo=disabled"
             ],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://github.com/mpv-player/mpv/archive/refs/tags/v0.37.0.tar.gz",
-                    "sha256": "placeholder"
+                    "type": "git",
+                    "url": "https://github.com/mpv-player/mpv.git",
+                    "tag": "v0.37.0"
                 }
             ]
         },
         {
             "name": "nelvamusic",
             "buildsystem": "simple",
+            "build-options": {
+                "build-args": ["--share=network"]
+            },
             "build-commands": [
                 "pip3 install --no-build-isolation --prefix=${FLATPAK_DEST} .",
-                "install -Dm644 packaging/aurora-music.desktop ${FLATPAK_DEST}/share/applications/com.nelva.NelvaMusic.desktop",
-                "install -Dm644 assets/icons/Nelva.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/com.nelva.NelvaMusic.png",
-                "install -Dm644 packaging/flatpak/com.auroramusic.AuroraMusic.metainfo.xml ${FLATPAK_DEST}/share/metainfo/com.nelva.NelvaMusic.metainfo.xml"
+                "install -Dm644 packaging/nelvamusic.desktop ${FLATPAK_DEST}/share/applications/com.nelva.NelvaMusic.desktop",
+                "install -Dm644 assets/icons/Nelva.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/nelva.png",
+                "install -Dm644 packaging/flatpak/com.nelva.NelvaMusic.metainfo.xml ${FLATPAK_DEST}/share/metainfo/com.nelva.NelvaMusic.metainfo.xml"
             ],
             "sources": [
                 {

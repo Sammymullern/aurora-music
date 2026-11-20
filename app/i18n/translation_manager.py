@@ -1,5 +1,5 @@
 """
-Translation Manager for Aurora Music
+Translation Manager for NelvaMusic
 Handles internationalization (i18n) and language switching
 """
 import os

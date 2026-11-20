@@ -112,8 +112,9 @@ RowLayout {
         MouseArea {
             id: barMA
             anchors.fill: parent
+            enabled: root.duration > 0
             hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
+            cursorShape: root.duration > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
             ToolTip.visible: containsMouse && root.duration > 0
             ToolTip.delay: 250
             ToolTip.text: formatTime(root.position) + "  /  " + formatTime(root.duration)
@@ -123,7 +124,6 @@ RowLayout {
             onPressed:  { dragging = true;  updateSeek(mouseX) }
             onPositionChanged: if (dragging) updateSeek(mouseX)
             onReleased: { dragging = false; updateSeek(mouseX) }
-            onClicked: updateSeek(mouseX)
 
             function updateSeek(mouseX) {
                 var w = barTrack.width

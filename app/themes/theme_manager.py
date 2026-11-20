@@ -1,5 +1,5 @@
 """
-Theme manager for Aurora Music
+Theme manager for NelvaMusic
 """
 
 import logging

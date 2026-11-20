@@ -114,7 +114,7 @@ class Player(QObject):
             def _on_end_file(event):
                 try:
                     load_generation = self._last_load_mono
-                    reason_raw = getattr(event, "reason", None)
+                    reason_raw = self._get_mpv_end_file_reason(event)
                     is_eof = False
                     try:
                         if isinstance(reason_raw, int):
@@ -186,6 +186,18 @@ class Player(QObject):
         except Exception as e:
             logger.error(f"Failed to initialize MPV: {e}")
             self._is_initialized = False
+
+    @staticmethod
+    def _get_mpv_end_file_reason(event):
+        """Read the end reason from python-mpv's MpvEvent payload."""
+        reason = getattr(event, "reason", None)
+        if reason is not None:
+            return reason
+        try:
+            event_data = event.data
+        except (AttributeError, ValueError, TypeError):
+            return None
+        return getattr(event_data, "reason", None)
 
     def _install_audio_filter_graph(self) -> None:
         """Install one labeled filter graph without replacing other MPV filters."""
@@ -927,6 +939,14 @@ class Player(QObject):
     def get_currentTitle(self) -> str:
         return self._current_title
 
+    def get_currentDisplayTitle(self) -> str:
+        if self._current_title:
+            return self._current_title
+        return self._current_track.stem if self._current_track else ""
+
+    def get_hasCurrentTrack(self) -> bool:
+        return self._current_track is not None
+
     def get_currentArtist(self) -> str:
         return self._current_artist
 
@@ -960,6 +980,8 @@ class Player(QObject):
     isShuffle = Property(bool, get_isShuffle, notify=shuffle_changed)
     repeatMode = Property(str, get_repeatMode, notify=repeat_changed)
     currentTitle = Property(str, get_currentTitle, notify=track_info_changed)
+    currentDisplayTitle = Property(str, get_currentDisplayTitle, notify=track_info_changed)
+    hasCurrentTrack = Property(bool, get_hasCurrentTrack, notify=track_info_changed)
     currentArtist = Property(str, get_currentArtist, notify=track_info_changed)
     currentAlbum = Property(str, get_currentAlbum, notify=track_info_changed)
     currentAlbumArt = Property(str, get_currentAlbumArt, notify=track_info_changed)
@@ -1120,7 +1142,9 @@ class Player(QObject):
         """Play playlist entry at given index using its stored metadata + id/favorite"""
         if 0 <= index < len(self._playlist):
             item = self._playlist[index]
-            return self.load_track(
+            previous_index = self._current_index
+            self._current_index = index
+            loaded = self.load_track(
                 item["file_path"],
                 title=item.get("title", ""),
                 artist=item.get("artist", ""),
@@ -1130,6 +1154,9 @@ class Player(QObject):
                 favorite=bool(item.get("favorite", False)),
                 auto_play=auto_play,
             )
+            if not loaded:
+                self._current_index = previous_index
+            return loaded
         return False
 
     def _restart_current(self) -> bool:

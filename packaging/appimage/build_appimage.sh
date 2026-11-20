@@ -2,11 +2,11 @@
 set -e
 
 VERSION="0.1.0"
-APPNAME="AuroraMusic"
+APPNAME="NelvaMusic"
 BUILD_DIR="build_appimage"
 APPDIR="${BUILD_DIR}/${APPNAME}.AppDir"
 
-echo "Building Aurora Music AppImage..."
+echo "Building NelvaMusic AppImage..."
 
 # Clean previous build
 rm -rf "${BUILD_DIR}"
@@ -16,7 +16,7 @@ mkdir -p "${BUILD_DIR}"
 mkdir -p "${APPDIR}/usr/bin"
 mkdir -p "${APPDIR}/usr/lib"
 mkdir -p "${APPDIR}/usr/share/applications"
-mkdir -p "${APPDIR}/usr/share/icons/hicolor/scalable/apps"
+mkdir -p "${APPDIR}/usr/share/icons/hicolor/512x512/apps"
 mkdir -p "${APPDIR}/usr/share/metainfo"
 
 # Copy Python application
@@ -27,10 +27,10 @@ cp requirements.txt "${APPDIR}/usr/"
 cp pyproject.toml "${APPDIR}/usr/"
 
 # Copy desktop file
-cp packaging/aurora-music.desktop "${APPDIR}/usr/share/applications/${APPNAME}.desktop"
+cp packaging/nelvamusic.desktop "${APPDIR}/usr/share/applications/${APPNAME}.desktop"
 
 # Copy icon
-cp assets/images/logo-icon.svg "${APPDIR}/usr/share/icons/hicolor/scalable/apps/${APPNAME}.svg"
+cp assets/icons/Nelva.png "${APPDIR}/usr/share/icons/hicolor/512x512/apps/nelva.png"
 
 # Copy AppRun
 cp packaging/appimage/AppRun "${APPDIR}/"

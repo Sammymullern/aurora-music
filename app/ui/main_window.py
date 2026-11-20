@@ -5,11 +5,12 @@ Main application window with sidebar navigation
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import QUrl, QObject, Signal, QTimer
+from PySide6.QtCore import QUrl, QObject, Signal, QTimer, Qt, Slot
 from PySide6.QtQml import QQmlApplicationEngine, QQmlContext
 from PySide6.QtGui import QGuiApplication
 
 from app.player.player import Player
+from app.audio.waveform_controller import WaveformController
 from app.database.session import db
 from app.settings.settings_manager import SettingsManager
 from app.i18n.translation_manager import TranslationManager
@@ -29,6 +30,8 @@ class MainWindow(QObject):
         super().__init__()
         
         self.player = Player()
+        self.waveform_controller = WaveformController(self)
+        self.player.track_changed.connect(self.waveform_controller.load)
         self.db = db
         self.settings = SettingsManager()
         self.player.dsp_manager.restore_settings(self.settings.getEqualizerSettings())
@@ -107,9 +110,34 @@ class MainWindow(QObject):
             logger.info("QML loaded successfully")
             # Show the root window
             root = self.engine.rootObjects()[0]
+            self._quick_window = root
             root.show()
             if self.settings.startMinimized:
                 root.showMinimized()
+
+    @Slot(result=bool)
+    def beginWindowMove(self) -> bool:
+        """Ask the window manager to move the frameless application window."""
+        window = getattr(self, "_quick_window", None)
+        if window is None:
+            return False
+        try:
+            return bool(window.startSystemMove())
+        except (AttributeError, RuntimeError) as exc:
+            logger.debug("System window move is unavailable: %s", exc)
+            return False
+
+    @Slot(int, result=bool)
+    def beginWindowResize(self, edges: int) -> bool:
+        """Ask the window manager to resize from the given Qt window edge."""
+        window = getattr(self, "_quick_window", None)
+        if window is None:
+            return False
+        try:
+            return bool(window.startSystemResize(Qt.Edges(edges)))
+        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+            logger.debug("System window resize is unavailable: %s", exc)
+            return False
     
     def _expose_objects(self) -> None:
         """Expose Python objects to QML context"""
@@ -121,6 +149,7 @@ class MainWindow(QObject):
         
         # Expose player
         context.setContextProperty("player", self.player)
+        context.setContextProperty("waveformController", self.waveform_controller)
         context.setContextProperty("equalizer", self.equalizer)
         context.setContextProperty("effects", self.effects)
         
@@ -203,6 +232,7 @@ class MainWindow(QObject):
         if self.library_watcher and self.library_watcher.is_running():
             self.library_watcher.stop()
         self.scan_timer.stop()
+        self.waveform_controller.cancel()
         self.settings.wait_for_background_operations()
         self.player.cleanup()
         self.db.close()

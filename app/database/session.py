@@ -3,6 +3,8 @@ Database session management
 """
 
 import logging
+import os
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -28,8 +30,24 @@ class DatabaseSession:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def initialize(self, db_path: str | Path = "aurora.db") -> None:
+    def initialize(self, db_path: str | Path | None = None) -> None:
         """Initialize database connection and create tables"""
+        if db_path is None:
+            data_home = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share"))
+            db_path = data_home / "aurora-music" / "aurora.db"
+            legacy_candidates = (
+                Path(__file__).resolve().parents[2] / "aurora.db",
+                Path.home() / "aurora.db",
+                Path.cwd() / "aurora.db",
+            )
+            if not Path(db_path).exists():
+                legacy_path = next(
+                    (candidate for candidate in legacy_candidates if candidate.is_file()),
+                    None,
+                )
+                if legacy_path is not None and legacy_path.resolve() != Path(db_path).resolve():
+                    Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(legacy_path, db_path)
         db_path = Path(db_path)
         
         # Create database directory if it doesn't exist

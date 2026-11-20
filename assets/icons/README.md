@@ -1,6 +1,6 @@
 # Icon Assets
 
-This directory contains icon assets for Aurora Music.
+This directory contains icon assets for NelvaMusic.
 
 ## Icon Categories
 
@@ -11,7 +11,7 @@ This directory contains icon assets for Aurora Music.
 ## Icon Guidelines
 
 - Use SVG format for scalability
-- Follow the Aurora color scheme:
+- Follow the NelvaMusic color scheme:
   - Primary: #7c3aed (purple)
   - Secondary: #3b82f6 (blue)
   - Accent: #ec4899 (pink)
