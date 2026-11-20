@@ -1,9 +1,10 @@
 {
     "app-id": "com.nelva.NelvaMusic",
     "runtime": "org.kde.Platform",
-    "runtime-version": "6.6",
+    "runtime-version": "6.11",
     "sdk": "org.kde.Sdk",
     "command": "nelva",
+    "only-arches": ["x86_64"],
     "finish-args": [
         "--share=ipc",
         "--socket=fallback-x11",
@@ -20,26 +21,7 @@
         "--own-name=org.mpris.MediaPlayer2.NelvaMusic"
     ],
     "modules": [
-        {
-            "name": "python3-pyside6",
-            "buildsystem": "simple",
-            "build-options": {
-                "build-args": ["--share=network"]
-            },
-            "build-commands": [
-                "pip3 install --disable-pip-version-check --no-cache-dir --prefix=${FLATPAK_DEST} 'PySide6>=6.6.0'"
-            ]
-        },
-        {
-            "name": "python3-modules",
-            "buildsystem": "simple",
-            "build-options": {
-                "build-args": ["--share=network"]
-            },
-            "build-commands": [
-                "pip3 install --disable-pip-version-check --no-cache-dir --prefix=${FLATPAK_DEST} SQLAlchemy python-mpv watchdog mutagen librosa pillow numpy scipy soundfile"
-            ]
-        },
+        "python3-dependencies.json",
         {
             "name": "mpv",
             "buildsystem": "meson",
@@ -47,24 +29,25 @@
                 "-Dlibmpv=true",
                 "-Dcplayer=false",
                 "-Dlua=disabled",
-                "-Dlibplacebo=disabled"
+                "-Dmanpage-build=disabled",
+                "-Dalsa=disabled",
+                "-Djack=disabled",
+                "-Dpipewire=disabled",
+                "-Dpulse=enabled"
             ],
             "sources": [
                 {
                     "type": "git",
                     "url": "https://github.com/mpv-player/mpv.git",
-                    "tag": "v0.37.0"
+                    "tag": "v0.42.0"
                 }
             ]
         },
         {
             "name": "nelvamusic",
             "buildsystem": "simple",
-            "build-options": {
-                "build-args": ["--share=network"]
-            },
             "build-commands": [
-                "pip3 install --no-build-isolation --prefix=${FLATPAK_DEST} .",
+                "pip3 install --no-deps --no-build-isolation --prefix=${FLATPAK_DEST} .",
                 "install -Dm644 packaging/nelvamusic.desktop ${FLATPAK_DEST}/share/applications/com.nelva.NelvaMusic.desktop",
                 "install -Dm644 assets/icons/Nelva.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/nelva.png",
                 "install -Dm644 packaging/flatpak/com.nelva.NelvaMusic.metainfo.xml ${FLATPAK_DEST}/share/metainfo/com.nelva.NelvaMusic.metainfo.xml"
@@ -72,7 +55,7 @@
             "sources": [
                 {
                     "type": "dir",
-                    "path": ".."
+                    "path": "../.."
                 }
             ]
         }

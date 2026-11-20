@@ -1,15 +1,11 @@
 #!/bin/bash
 set -e
 
-# Get the directory where this script is located
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-APPDIR="${SCRIPT_DIR}"
+APPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Set up environment
-export PYTHONPATH="${APPDIR}/usr/lib/python3.11/site-packages:${APPDIR}/usr:${PYTHONPATH}"
-export QT_PLUGIN_PATH="${APPDIR}/usr/plugins"
-export QML2_IMPORT_PATH="${APPDIR}/usr/qml"
-export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
+# libmpv is loaded by python-mpv through ctypes, so make its bundled path
+# explicit in addition to the dynamic linker's search path.
+export NELVA_LIBMPV="${APPDIR}/usr/lib/libmpv.so.2"
+export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${APPDIR}/usr/lib/nelvamusic${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 
-# Run the application
-exec python3 -m app.main "$@"
+exec "${APPDIR}/usr/lib/nelvamusic/NelvaMusic.bin" "$@"

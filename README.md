@@ -14,7 +14,7 @@ A premium native Linux music application with modern UI, broad audio support, SQ
 - **AI Recommendations**: Powered by librosa for intelligent music suggestions
 - **Plugin System**: Extensible architecture for custom features
 
-The RPM and Flatpak definitions and AppImage script are still experimental and have not been validated as installable releases.
+Flatpak and AppImage recipes are provided for x86_64. They are currently build recipes, not validated release artifacts; see the build instructions below.
 
 ## Installation
 
@@ -63,6 +63,26 @@ nelva
 ```
 
 The installed `nelva` command launches the app directly. Users do not need to open or activate a development virtual environment.
+
+### Flatpak bundle
+
+Install `flatpak-builder`, `flatpak-pip-generator`, and the Flathub remote, then run:
+
+```bash
+packaging/flatpak/build.sh
+```
+
+The build pins Python package versions in `packaging/flatpak/requirements.txt`; the helper generates Flatpak source entries with hashes before invoking `flatpak-builder`. MPV 0.42.0 requires FFmpeg 7.1 libraries, libplacebo 6.338.2 or newer, and libass 0.12.2 or newer at build time. Confirm these development libraries are available in the selected KDE SDK before treating the Flatpak as release-ready. The first build downloads the KDE 6.11 SDK/runtime and dependencies. It produces `dist/NelvaMusic.flatpak`.
+
+### AppImage
+
+Install the project dependencies, PySide6 deployment tools, `libmpv`, and `curl`, then run:
+
+```bash
+NELVA_BUILD_PYTHON="$PWD/.venv/bin/python" packaging/appimage/build_appimage.sh
+```
+
+The script compiles the Python application into a standalone directory with Nuitka, then uses linuxdeploy to bundle its Qt and native library dependencies, including `libmpv`. It produces `dist/NelvaMusic-0.1.0-x86_64.AppImage`. The linuxdeploy tool is downloaded during packaging.
 
 ### Development Setup
 

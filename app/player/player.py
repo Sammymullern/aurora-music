@@ -4,10 +4,24 @@ MPV-based audio player with advanced features
 
 import logging
 import math
+import ctypes.util
+import os
 from pathlib import Path
 from typing import Optional, Callable, List, Dict, Any
 
-import mpv
+_bundled_mpv = os.environ.get("NELVA_LIBMPV", "")
+_original_find_library = ctypes.util.find_library
+if _bundled_mpv and Path(_bundled_mpv).is_file():
+    def _find_bundled_mpv(name: str):
+        if name == "mpv":
+            return _bundled_mpv
+        return _original_find_library(name)
+
+    ctypes.util.find_library = _find_bundled_mpv
+try:
+    import mpv
+finally:
+    ctypes.util.find_library = _original_find_library
 from PySide6.QtCore import QObject, Signal, Slot, Property, QTimer
 from app.player.equalizer import DSPManager
 
