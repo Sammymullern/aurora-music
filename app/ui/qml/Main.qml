@@ -11,7 +11,7 @@ ApplicationWindow {
     minimumWidth: 1050
     minimumHeight: 680
     color: theme.background
-    title: "Aurora Music"
+    title: "NelvaMusic"
 
     property color glassColor: theme.surface
     property color glassBorder: theme.border
@@ -46,6 +46,11 @@ ApplicationWindow {
                 ColumnLayout {
                     anchors.fill: parent
                     spacing: 0
+
+                    TopBar {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 42
+                    }
 
                     StackLayout {
                         id: contentStack

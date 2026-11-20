@@ -48,7 +48,7 @@ Features:
 mkdir -p %{buildroot}/usr/lib/aurora-music
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/share/applications
-mkdir -p %{buildroot}/usr/share/icons/hicolor/scalable/apps
+mkdir -p %{buildroot}/usr/share/icons/hicolor/512x512/apps
 
 cp -r app %{buildroot}/usr/lib/aurora-music/
 cp -r assets %{buildroot}/usr/lib/aurora-music/
@@ -56,23 +56,23 @@ cp -r plugins %{buildroot}/usr/lib/aurora-music/
 cp requirements.txt %{buildroot}/usr/lib/aurora-music/
 cp pyproject.toml %{buildroot}/usr/lib/aurora-music/
 
-cat > %{buildroot}/usr/bin/aurora << 'EOF'
+cat > %{buildroot}/usr/bin/nelva << 'EOF'
 #!/usr/bin/env python3
 import sys
 sys.path.insert(0, '/usr/lib/aurora-music')
 from app.main import main
 main()
 EOF
-chmod +x %{buildroot}/usr/bin/aurora
+chmod +x %{buildroot}/usr/bin/nelva
 
 cp packaging/aurora-music.desktop %{buildroot}/usr/share/applications/
-cp assets/images/logo-icon.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/aurora-music.svg
+cp assets/icons/Nelva.png %{buildroot}/usr/share/icons/hicolor/512x512/apps/nelva.png
 
 %files
 /usr/lib/aurora-music/*
-/usr/bin/aurora
+/usr/bin/nelva
 /usr/share/applications/aurora-music.desktop
-/usr/share/icons/hicolor/scalable/apps/aurora-music.svg
+/usr/share/icons/hicolor/512x512/apps/nelva.png
 
 %changelog
 * %(date "+%%a %%b %%d %%Y") Aurora Music Team <team@auroramusic.com> - 0.1.0-1

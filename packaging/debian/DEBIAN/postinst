@@ -6,10 +6,10 @@ case "$1" in
         # Create desktop entry
         cat > /usr/share/applications/aurora-music.desktop << EOF
 [Desktop Entry]
-Name=Aurora Music
+Name=NelvaMusic
 Comment=Premium native Linux music application
-Exec=/usr/bin/aurora
-Icon=/usr/share/aurora-music/icons/aurora.png
+Exec=/usr/bin/nelva
+Icon=nelva
 Terminal=false
 Type=Application
 Categories=Audio;AudioVideo;Player;

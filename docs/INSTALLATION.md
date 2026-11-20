@@ -42,6 +42,8 @@ sudo dpkg -i aurora-music_0.1.0_amd64.deb
 sudo apt-get install -f
 ```
 
+After installation, launch from a terminal with `nelva` or open **NelvaMusic** from the applications menu. No virtual environment activation is needed.
+
 ### RPM (Fedora/RHEL/openSUSE)
 
 ```bash
@@ -58,14 +60,14 @@ sudo zypper install aurora-music-0.1.0-1.x86_64.rpm
 
 ```bash
 # Install from Flathub (when available)
-flatpak install flathub com.auroramusic.AuroraMusic
+flatpak install flathub com.nelva.NelvaMusic
 
 # Or build from source
 flatpak-builder build packaging/flatpak/com.auroramusic.AuroraMusic.json
-flatpak install build/com.auroramusic.AuroraMusic.flatpak
+flatpak install build/com.nelva.NelvaMusic.flatpak
 
 # Run
-flatpak run com.auroramusic.AuroraMusic
+flatpak run com.nelva.NelvaMusic
 ```
 
 ### AppImage
@@ -218,7 +220,7 @@ sudo dnf remove aurora-music
 ### Flatpak
 
 ```bash
-flatpak uninstall com.auroramusic.AuroraMusic
+flatpak uninstall com.nelva.NelvaMusic
 ```
 
 ### AppImage

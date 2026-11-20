@@ -11,7 +11,7 @@ except locale.Error:
     pass
 
 """
-Main entry point for Aurora Music application
+Main entry point for NelvaMusic application
 """
 
 import sys
@@ -19,6 +19,7 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QSettings, Qt
+from PySide6.QtGui import QIcon
 
 from app.ui.main_window import MainWindow
 
@@ -32,9 +33,12 @@ def main():
     
     # Create application instance
     app = QApplication(sys.argv)
-    app.setApplicationName("Aurora Music")
+    app.setApplicationName("NelvaMusic")
     app.setApplicationVersion("0.1.0")
-    app.setOrganizationName("Aurora Music")
+    app.setOrganizationName("Nelva")
+    icon_path = Path(__file__).resolve().parent.parent / "assets" / "icons" / "Nelva.png"
+    if icon_path.is_file():
+        app.setWindowIcon(QIcon(str(icon_path)))
     
     # Create main window controller
     window = MainWindow()

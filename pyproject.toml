@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aurora-music"
+name = "nelvamusic"
 version = "0.1.0"
 description = "A premium native Linux music application with modern UI"
 readme = "README.md"
@@ -45,7 +45,7 @@ dev = [
 ]
 
 [project.scripts]
-aurora = "app.main:main"
+nelva = "app.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

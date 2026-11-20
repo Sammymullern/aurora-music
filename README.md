@@ -1,4 +1,4 @@
-# Aurora Music
+# NelvaMusic
 
 A premium native Linux music application with modern UI, broad audio support, SQLite-indexed library, automatic folder monitoring, professional audio processing, themes, plugins, and AI-powered recommendations.
 
@@ -49,6 +49,14 @@ pip install -r requirements.txt
 python -m app.main
 ```
 
+After installing the package, start the app from a terminal with:
+
+```bash
+nelva
+```
+
+The installed command uses the Python environment provided by the package; you do not need to activate a development virtual environment.
+
 ### Development Setup
 
 ```bash
@@ -59,9 +67,9 @@ pip install -r requirements-dev.txt
 
 ### First Run
 
-When you first launch Aurora Music:
+When you first launch NelvaMusic:
 
-1. **Add Music Library**: Aurora automatically adds `~/Music` when it exists. Add other folders in Settings → Library or with **Add Folder** on the Library page.
+1. **Add Music Library**: NelvaMusic automatically adds `~/Music` when it exists. Add other folders in Settings → Library or with **Add Folder** on the Library page.
 2. **Keep It Updated**: Saved folders are scanned at startup, watched for new files, and rescanned periodically. Added folders remain saved until removed.
 3. **Start Playing**: Browse your library and click play on any track
 

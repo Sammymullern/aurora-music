@@ -40,7 +40,7 @@ class _UpdateCheck(QRunnable):
             if not tag:
                 result = "No published release was found."
             elif self._version(tag) > self._version("0.1.0"):
-                result = f"Aurora Music {tag} is available."
+                result = f"NelvaMusic {tag} is available."
             else:
                 result = "You’re running the latest release."
         except (urllib.error.URLError, TimeoutError, ValueError, OSError):
@@ -564,17 +564,17 @@ class SettingsManager(QObject):
     def _update_autostart(self):
         """Update autostart entry based on setting"""
         autostart_dir = Path.home() / ".config" / "autostart"
-        autostart_file = autostart_dir / "aurora-music.desktop"
+        autostart_file = autostart_dir / "nelvamusic.desktop"
         
         if self._settings.get("launch_at_startup"):
             autostart_dir.mkdir(parents=True, exist_ok=True)
             project_root = Path(__file__).resolve().parents[2]
             desktop_content = """[Desktop Entry]
 Type=Application
-Name=Aurora Music
+Name=NelvaMusic
 Exec="{}" -m app.main
 Path="{}"
-Icon=aurora-music
+Icon=nelva
 Terminal=false
 Categories=Audio;Music;Player;
 """.format(sys.executable, project_root)
@@ -623,7 +623,7 @@ Categories=Audio;Music;Player;
             )
             
             dbus_message.setArguments([
-                "Aurora Music",  # app_name
+                "NelvaMusic",  # app_name
                 0,  # replaces_id
                 icon,  # app_icon
                 title,  # summary

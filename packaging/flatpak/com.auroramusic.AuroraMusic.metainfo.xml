@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.auroramusic.AuroraMusic</id>
-  <name>Aurora Music</name>
+  <id>com.nelva.NelvaMusic</id>
+  <name>NelvaMusic</name>
   <summary>Premium native Linux music application</summary>
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
-  <developer_name>Aurora Music Team</developer_name>
+  <developer_name>Nelva</developer_name>
   
   <description>
     <p>
-      Aurora Music is a modern music player with a beautiful UI, broad audio
+      NelvaMusic is a modern music player with a beautiful UI, broad audio
       support, SQLite-indexed library, automatic folder monitoring, professional
       audio processing, themes, plugins, and AI-powered recommendations.
     </p>
@@ -25,7 +25,7 @@
     </ul>
   </description>
   
-  <launchable type="desktop-id">com.auroramusic.AuroraMusic.desktop</launchable>
+  <launchable type="desktop-id">com.nelva.NelvaMusic.desktop</launchable>
   
   <screenshots>
     <screenshot type="default">

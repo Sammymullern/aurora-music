@@ -39,7 +39,7 @@ Rectangle {
                         font.weight: Font.DemiBold
                     }
                     Text {
-                        text: root.tr("Tune Aurora Music to your listening setup")
+                        text: root.tr("Tune NelvaMusic to your listening setup")
                         color: theme.textSecondary
                         font.pixelSize: 14
                     }

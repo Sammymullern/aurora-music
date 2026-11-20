@@ -1,9 +1,9 @@
 {
-    "app-id": "com.auroramusic.AuroraMusic",
+    "app-id": "com.nelva.NelvaMusic",
     "runtime": "org.kde.Platform",
     "runtime-version": "6.6",
     "sdk": "org.kde.Sdk",
-    "command": "aurora",
+    "command": "nelva",
     "finish-args": [
         "--share=ipc",
         "--socket=fallback-x11",
@@ -14,7 +14,7 @@
         "--filesystem=xdg-music:rw",
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.mpris.MediaPlayer2.Player",
-        "--own-name=org.mpris.MediaPlayer2.AuroraMusic"
+        "--own-name=org.mpris.MediaPlayer2.NelvaMusic"
     ],
     "modules": [
         {
@@ -54,13 +54,13 @@
             ]
         },
         {
-            "name": "aurora-music",
+            "name": "nelvamusic",
             "buildsystem": "simple",
             "build-commands": [
                 "pip3 install --no-build-isolation --prefix=${FLATPAK_DEST} .",
-                "install -Dm644 packaging/aurora-music.desktop ${FLATPAK_DEST}/share/applications/com.auroramusic.AuroraMusic.desktop",
-                "install -Dm644 assets/images/logo-icon.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/com.auroramusic.AuroraMusic.svg",
-                "install -Dm644 packaging/flatpak/com.auroramusic.AuroraMusic.metainfo.xml ${FLATPAK_DEST}/share/metainfo/com.auroramusic.AuroraMusic.metainfo.xml"
+                "install -Dm644 packaging/aurora-music.desktop ${FLATPAK_DEST}/share/applications/com.nelva.NelvaMusic.desktop",
+                "install -Dm644 assets/icons/Nelva.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/com.nelva.NelvaMusic.png",
+                "install -Dm644 packaging/flatpak/com.auroramusic.AuroraMusic.metainfo.xml ${FLATPAK_DEST}/share/metainfo/com.nelva.NelvaMusic.metainfo.xml"
             ],
             "sources": [
                 {
