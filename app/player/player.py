@@ -58,6 +58,7 @@ class Player(QObject):
         self._is_initialized: bool = False
         # Playlist items are dicts: {"id": str, "file_path": str, "title": str, "artist": str, "album": str, "album_art": str, "favorite": bool}
         self._playlist: List[Dict[str, Any]] = []
+        self._temporary_queue: List[Dict[str, Any]] = []
         self._current_index: int = -1
         self._stopped_index: Optional[int] = None
         self._shuffle: bool = False
@@ -1101,9 +1102,45 @@ class Player(QObject):
     def set_playlist(self, tracks: List[Any]) -> None:
         """Set the playlist. Accepts list of paths or list of song dicts with metadata."""
         self._playlist = [self._normalize_playlist_item(t) for t in tracks]
+        self._temporary_queue.clear()
         self._current_index = -1
         self._stopped_index = None
         logger.info(f"Playlist set with {len(self._playlist)} tracks")
+
+    @Property("QVariantList", notify=track_info_changed)
+    def queuedTracks(self):
+        return list(self._temporary_queue)
+
+    @Slot("QVariantMap", result=bool)
+    def addToQueue(self, track: Dict[str, Any]) -> bool:
+        item = self._normalize_playlist_item(track)
+        if not item.get("file_path") or not Path(item["file_path"]).is_file():
+            return False
+        self._temporary_queue.append(item)
+        self.track_info_changed.emit()
+        return True
+
+    @Slot("QVariantMap", result=bool)
+    def playNext(self, track: Dict[str, Any]) -> bool:
+        item = self._normalize_playlist_item(track)
+        if not item.get("file_path") or not Path(item["file_path"]).is_file():
+            return False
+        self._temporary_queue.insert(0, item)
+        self.track_info_changed.emit()
+        return True
+
+    def _play_queued_track(self) -> bool:
+        if not self._temporary_queue:
+            return False
+        item = self._temporary_queue.pop(0)
+        loaded = self.load_track(item["file_path"], title=item.get("title", ""),
+            artist=item.get("artist", ""), album=item.get("album", ""),
+            album_art=item.get("album_art", ""), track_id=item.get("id", ""),
+            favorite=bool(item.get("favorite", False)), auto_play=True)
+        if not loaded:
+            self._temporary_queue.insert(0, item)
+        self.track_info_changed.emit()
+        return loaded
 
     @Slot("QVariantList", int, result=bool)
     def playPlaylist(self, tracks: List[Any], index: int = 0) -> bool:
@@ -1189,6 +1226,8 @@ class Player(QObject):
 
     def next_track(self) -> bool:
         """Play next track in playlist, respecting repeat modes"""
+        if self._temporary_queue:
+            return self._play_queued_track()
         if not self._playlist:
             logger.warning("No playlist set")
             return False

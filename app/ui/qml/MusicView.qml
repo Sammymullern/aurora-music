@@ -415,6 +415,11 @@ Rectangle {
                                 property bool isHovered: false
                                 readonly property bool isActive: Boolean(player) && String(player.currentTrackId || "") === String(modelData.id)
                                 readonly property bool isFav: Boolean(modelData.favorite)
+                                Menu {
+                                    id: trackMenu
+                                    MenuItem { text: "Play next"; onTriggered: if (player) player.playNext(modelData) }
+                                    MenuItem { text: "Add to queue"; onTriggered: if (player) player.addToQueue(modelData) }
+                                }
 
                                 RowLayout {
                                     z: 1
@@ -505,6 +510,7 @@ Rectangle {
                                 MouseArea {
                                     anchors.fill: parent
                                     hoverEnabled: true
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
                                     cursorShape: Qt.PointingHandCursor
                                     onEntered: {
                                         parent.isHovered = true
@@ -514,8 +520,9 @@ Rectangle {
                                         parent.isHovered = false
                                         parent.color = parent.isActive ? theme.surfaceVariant : ((index % 2 === 0) ? theme.surface : theme.backgroundLight)
                                     }
-                                    onClicked: {
-                                        if (musicManager) musicManager.playSong(modelData.id)
+                                    onClicked: function(mouse) {
+                                        if (mouse.button === Qt.RightButton) trackMenu.popup()
+                                        else if (musicManager) musicManager.playSong(modelData.id)
                                     }
                                 }
                             }
